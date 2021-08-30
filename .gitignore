@@ -1,0 +1,9 @@
+*.docx
+*.xlsx
+\ipynb_checkpoints
+\__pycache__
+\cirsocvenv
+.vscode
+.ipynb_checkpoints
+\calabar.egg-info
+.pytest_cache
