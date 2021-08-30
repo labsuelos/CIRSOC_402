@@ -12,8 +12,8 @@ BEARINGSHAPEDICT['ES'] = ['rectangulo', 'cuadrado', 'cuadrada', 'circular', 'cir
 BEARINGSHAPE = sum(BEARINGSHAPEDICT.values(), [])
 # Supported methods for the bearing capacity
 BEARINGMETHODDICT = {}
-BEARINGMETHODDICT['EN'] = ['vesic', 'hansen', 'meyerhof', 'eurocode 7', 'vesic pile']
-BEARINGMETHODDICT['ES'] = ['vesic', 'hansen', 'meyerhof', 'eurocode 7', 'vesic pilote']
+BEARINGMETHODDICT['EN'] = ['vesic', 'hansen', 'meyerhof', 'eurocode 7', 'canada', 'vesic pile']
+BEARINGMETHODDICT['ES'] = ['vesic', 'hansen', 'meyerhof', 'eurocode 7', 'canada', 'vesic pilote']
 BEARINGMETHOD = sum(BEARINGMETHODDICT.values(), [])
 # Supported methods for bearing factods
 BEARINGFACTORS = ['cirsoc', 'usace', 'canada']

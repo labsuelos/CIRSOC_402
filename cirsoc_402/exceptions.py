@@ -99,7 +99,7 @@ class BearingLengthError(Exception):
 
 class BearingFactorsError(Exception):
     '''Exception raised when the the bearing capacity factor group
-    requested by the user is not supported by the code.
+    requested by the user is not supported by the code
 
     Attributes
     ----------
@@ -118,5 +118,62 @@ class BearingFactorsError(Exception):
             mesage = ("Grupo de factores para capacidad de carga '{}' no "
                       "disponible. Las factores disponibles son: ")
             mesage = mesage + ', '.join(BEARINGFACTORS)
+        self.mesage = mesage.format(method)
+        super().__init__(self.mesage)
+
+
+class BearingLengthSquareError(Exception):
+    '''Exception raised when the the bearing capacity of a square base
+    is requested but the length doesn't match the width
+
+    Attributes
+    ----------
+        mesage : str
+            explanation of the error
+    '''
+
+    def __init__(self):        
+        if LANGUAGE == 'EN':
+            mesage = "The length and width of a square base must be the same".
+        elif LANGUAGE == 'ES':
+            mesage = "El larngo (length) y ancho (widht) de una base cuadrada deben ser iguales."
+        self.mesage = mesage.format(method)
+        super().__init__(self.mesage)
+
+
+class BearingLengthCircularError(Exception):
+    '''Exception raised when the the bearing capacity of a circular base
+    is requested but the length doesn't match the width
+
+    Attributes
+    ----------
+        mesage : str
+            explanation of the error
+    '''
+    
+    def __init__(self):        
+        if LANGUAGE == 'EN':
+            mesage = "The length and width of a circular base must be the same".
+        elif LANGUAGE == 'ES':
+            mesage = "El larngo (length) y ancho (widht) de una base circular deben ser iguales."
+        self.mesage = mesage.format(method)
+        super().__init__(self.mesage)
+
+
+class BearingSizeError(Exception):
+    '''Exception raised when the the bearing capacity of a circular base
+    is requested but the length doesn't match the width
+
+    Attributes
+    ----------
+        mesage : str
+            explanation of the error
+    '''
+    
+    def __init__(self):        
+        if LANGUAGE == 'EN':
+            mesage = "The width of the base must be smaller than the length".
+        elif LANGUAGE == 'ES':
+            mesage = "El ancho (widht) de la base debe ser menor que el largo (length)."
         self.mesage = mesage.format(method)
         super().__init__(self.mesage)
