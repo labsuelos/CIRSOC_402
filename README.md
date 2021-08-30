@@ -2,8 +2,7 @@
 
 cirsoc_402 is a Python library for foundation design based on the Argentinian CIRSOC 402 standard project (not official yet). The library also includes calculation methods from the USACE manuals, Eurocode 7 and the Canadian Foundation Engineering Manual.
 
-The cirsoc_402 packge is **not** an official X of the [CIRSOC]
-(https://www.inti.gob.ar/areas/servicios-industriales/construcciones-e-infraestructura/cirsoc)
+The cirsoc_402 packge is **not** an official X of the [CIRSOC](https://www.inti.gob.ar/areas/servicios-industriales/construcciones-e-infraestructura/cirsoc)
 
 ## Installation
 
