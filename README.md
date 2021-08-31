@@ -32,12 +32,12 @@ The CIRSOC 402 standard project is built into the documentation of the cirsoc_40
 
 ## Authors and acknowledgment
 
-Sfriso, Alejo : Project xxxxx, xxxx (asfriso@srk.com.ar)
-Pedro Fernandez (pfernandez@srk.com.ar)
-Ignacio Cueto (icueto@srk.com.ar)
-Mateo Biedma :
-Juan Manduca : 
-Barbieri, Pablo : Standard calibration and code structure. Department of Civil and Environmental Engineering, University of Western Ontario. (pbarbie2@uwo.ca)
+- Sfriso, Alejo : Project xxxxx, xxxx (asfriso@srk.com.ar)
+- Fernandez, Pedro (pfernandez@srk.com.ar)
+- Cueto, Ignacio (icueto@srk.com.ar)
+- Biedma, Mateo :
+- Manduca,Juan : 
+- Barbieri, Pablo : Standard calibration and code structure. Department of Civil and Environmental Engineering, University of Western Ontario. (pbarbie2@uwo.ca)
 
 ## License
 
