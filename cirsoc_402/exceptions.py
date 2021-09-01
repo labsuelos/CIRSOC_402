@@ -3,6 +3,7 @@
 
 from constants import LANGUAGE
 from constants import BEARINGSHAPE, BEARINGMETHOD, BEARINGFACTORS
+from constants import STANDARD, DEFAULTSTANDARD
 
 class BearingShapeError(Exception):
     '''Exception raised when the shape in the bearing capacity
@@ -177,3 +178,27 @@ class BearingSizeError(Exception):
             mesage = "El ancho (widht) de la base debe ser menor que el largo (length)."
         self.mesage = mesage.format(method)
         super().__init__(self.mesage)
+
+
+class StandardError(Exception):
+    '''Exception raised when the standard requested by the user is not
+    supported by the code.
+
+    Attributes
+    ----------
+        standard :  str
+            standard requested by the user
+        mesage : str
+            explanation of the error
+    '''
+
+    def __init__(self, standard):        
+        self.standard = standard
+        if LANGUAGE == 'EN':
+            mesage = "Unsuported desgin standard ''{}'. Suported design standards are: "
+        elif LANGUAGE == 'ES':
+            mesage = "Estandard de diseno '{}' no disponible. Las estandares disponbles son son: "
+        mesage = mesage + ', '.join(DEFAULTSTANDARD)
+        self.mesage = mesage.format(standard)
+        super().__init__(self.mesage)
+

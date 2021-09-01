@@ -6,7 +6,7 @@ The cirsoc_402 packge is **not** an official X of the [CIRSOC](https://www.inti.
 
 ## Installation
 
-Use the package manager [pip](xxxxx) to install foobar.
+Use the package manager [pip](xxxxx) to install cirsoc_402.
 
 ```bash
 pip install cirsoc_402

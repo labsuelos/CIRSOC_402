@@ -18,3 +18,10 @@ BEARINGMETHOD = sum(BEARINGMETHODDICT.values(), [])
 # Supported methods for bearing factods
 BEARINGFACTORS = ['cirsoc', 'usace', 'canada']
 DEFAULTBEARINGFACTORS = 'cirsoc'
+
+# Supported codes
+STANDARD = ['cirsoc', 'asce', 'eurocode', 'canada']
+DEFAULTSTANDARD = 'cirsoc'
+
+# Load states
+LOAD = ['D', 'Di', 'E', 'F', 'Fa', 'H', 'L', 'Lr', 'R', 'S', 'T', 'W', 'Wi']

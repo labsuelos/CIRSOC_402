@@ -6,4 +6,5 @@
 .vscode
 .ipynb_checkpoints
 \calabar.egg-info
+\notebooks
 .pytest_cache
