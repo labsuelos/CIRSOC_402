@@ -17,7 +17,7 @@ cirsoc_402/bearing/depth.py
 cirsoc_402/bearing/ground_inclination.py
 cirsoc_402/bearing/load_inclination.py
 cirsoc_402/bearing/shape.py
-load/__init__.py
-load/asce.py
-load/cirsoc.py
-load/loadclass.py
+cirsoc_402/load/__init__.py
+cirsoc_402/load/asce.py
+cirsoc_402/load/cirsoc.py
+cirsoc_402/load/loadclass.py

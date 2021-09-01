@@ -1,9 +1,9 @@
-    '''Custom exception in cirsoc_402
-    '''
+'''Custom exception in cirsoc_402
+'''
 
-from constants import LANGUAGE
-from constants import BEARINGSHAPE, BEARINGMETHOD, BEARINGFACTORS
-from constants import STANDARD, DEFAULTSTANDARD
+from cirsoc_402.constants import LANGUAGE
+from cirsoc_402.constants import BEARINGSHAPE, BEARINGMETHOD, BEARINGFACTORS
+from cirsoc_402.constants import STANDARD, DEFAULTSTANDARD
 
 class BearingShapeError(Exception):
     '''Exception raised when the shape in the bearing capacity
@@ -135,9 +135,9 @@ class BearingLengthSquareError(Exception):
 
     def __init__(self):        
         if LANGUAGE == 'EN':
-            mesage = "The length and width of a square base must be the same".
+            mesage = "The length and width of a square base must be the same."
         elif LANGUAGE == 'ES':
-            mesage = "El larngo (length) y ancho (widht) de una base cuadrada deben ser iguales."
+            mesage = "El larngo (length) y ancho (width) de una base cuadrada deben ser iguales."
         self.mesage = mesage.format(method)
         super().__init__(self.mesage)
 
@@ -154,9 +154,9 @@ class BearingLengthCircularError(Exception):
     
     def __init__(self):        
         if LANGUAGE == 'EN':
-            mesage = "The length and width of a circular base must be the same".
+            mesage = "The length and width of a circular base must be the same."
         elif LANGUAGE == 'ES':
-            mesage = "El larngo (length) y ancho (widht) de una base circular deben ser iguales."
+            mesage = "El larngo (length) y ancho (width) de una base circular deben ser iguales."
         self.mesage = mesage.format(method)
         super().__init__(self.mesage)
 
@@ -173,9 +173,9 @@ class BearingSizeError(Exception):
     
     def __init__(self):        
         if LANGUAGE == 'EN':
-            mesage = "The width of the base must be smaller than the length".
+            mesage = "The width of the base must be smaller than the length."
         elif LANGUAGE == 'ES':
-            mesage = "El ancho (widht) de la base debe ser menor que el largo (length)."
+            mesage = "El ancho (width) de la base debe ser menor que el largo (length)."
         self.mesage = mesage.format(method)
         super().__init__(self.mesage)
 

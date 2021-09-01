@@ -2,10 +2,10 @@
 equation
 '''
 import numpy as np
-from bearing_factors import bearing_factor_nc
 
 from cirsoc_402.constants import BEARINGFACTORS, DEFAULTBEARINGFACTORS
 from cirsoc_402.exceptions import BearingFactorsError
+from cirsoc_402.bearing.bearing_factors import bearing_factor_nc
 
 def depth_factors(depth, phi, width, factors=DEFAULTBEARINGFACTORS):
     '''Dimensionless correction factors due to the foundation depth
@@ -55,15 +55,15 @@ def depth_factors(depth, phi, width, factors=DEFAULTBEARINGFACTORS):
     elif factors == 'cirsoc':
         factor_c = cirsoc_factor_c(depth, width, phi)
         factor_q = cirsoc_factor_q(depth, width, phi)
-        factor_g = cirsoc_factor_g(phi)
+        factor_g = cirsoc_factor_g()
     elif factors == 'canada':
-        factor_c = canada_factor_c()
-        factor_q = canada_factor_q()
+        factor_c = canada_factor_c(phi, depth, width)
+        factor_q = canada_factor_q(phi, depth, width)
         factor_g = canada_factor_g()
     elif factors == 'usace':
-        factor_c = canada_factor_c()
-        factor_q = canada_factor_q()
-        factor_g = canada_factor_g()
+        factor_c = usace_factor_c()
+        factor_q = usace_factor_q()
+        factor_g = usace_factor_g()
 
     return factor_c, factor_q, factor_g
 
@@ -110,9 +110,9 @@ def depth_factor_c(depth, phi, width, factors=DEFAULTBEARINGFACTORS):
     elif factors == 'cirsoc':
         factor_c = cirsoc_factor_c(depth, width, phi)
     elif factors == 'canada':
-        factor_c = canada_factor_c()
+        factor_c = canada_factor_c(phi, depth, width)
     elif factors == 'usace':
-        factor_c = canada_factor_c()
+        factor_c = usace_factor_c()
 
     return factor_c
 
@@ -159,9 +159,9 @@ def depth_factor_q(depth, phi, width, factors=DEFAULTBEARINGFACTORS):
     elif factors == 'cirsoc':
         factor_q = cirsoc_factor_q(depth, width, phi)
     elif factors == 'canada':
-        factor_q = canada_factor_q()
+        factor_q = canada_factor_q(phi, depth, width)
     elif factors == 'usace':
-        factor_q = canada_factor_q()
+        factor_q = usace_factor_q()
 
     return factor_q
 
@@ -206,11 +206,11 @@ def depth_factor_g(depth, phi, width, factors=DEFAULTBEARINGFACTORS):
     if factors not in BEARINGFACTORS:
         raise BearingFactorsError(factors)
     elif factors == 'cirsoc':
-        factor_g = cirsoc_factor_g(phi)
+        factor_g = cirsoc_factor_g()
     elif factors == 'canada':
         factor_g = canada_factor_g()
     elif factors == 'usace':
-        factor_g = canada_factor_g()
+        factor_g = usace_factor_g()
 
     return factor_g
 
@@ -229,7 +229,7 @@ def cirsoc_factor_q(depth, width, phi):
     return factor
 
 
-def cirsoc_factor_g(phi):
+def cirsoc_factor_g():
     return 1
 
 
@@ -257,9 +257,9 @@ def canada_factor_c(phi, depth, width):
     # ref [3] table 10.2 Scd factor
     kfactor = canada_factor_k(depth, width)
     if phi==0:
-        return 1 + 0.4 * k
+        return 1 + 0.4 * kfactor
     else:
-        sqd = canada_factor_q(phi, depth, width):
+        sqd = canada_factor_q(phi, depth, width)
         return sqd - (1 - sqd) / (bearing_factor_nc(phi) * np.tan(np.radians(phi)))
 
 
@@ -329,7 +329,7 @@ def canada_factor_k(depth, width):
 
     # ref [3] table 10.2 note 2
     if depth <= width:
-        kfactor = dpth/width
+        kfactor = depth/width
     else:
         kfactor = np.arctan(depth / width)
     return kfactor

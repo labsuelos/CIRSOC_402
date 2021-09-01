@@ -2,11 +2,11 @@
 capacity equation
 '''
 import numpy as np
-from bearing_factors import bearing_factor_nc
-from shape import shape_checks
 
 from cirsoc_402.constants import BEARINGFACTORS, DEFAULTBEARINGFACTORS
-from cirsoc_402.constants import BearingFactorsError
+from cirsoc_402.exceptions import BearingFactorsError
+from cirsoc_402.bearing.bearing_factors import bearing_factor_nc
+from cirsoc_402.bearing.shape import shape_checks
 
 
 
@@ -33,7 +33,7 @@ def load_inclination_factors(shape, phi, cohesion, width, length, vertical_load,
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht. by default np.nan [m]
+        value as the width. by default np.nan [m]
     vertical_load : float, int
         Vertical load acting on the foundation level. Positive for
         compression [kN]
@@ -41,7 +41,7 @@ def load_inclination_factors(shape, phi, cohesion, width, length, vertical_load,
         Horizontal load acting on the foundation level [kN]
     load_orientation : float, int
         Orientation of the horizontal load in the foundation plane.
-        If load_orientation=0 the load acts parallel to the widht,
+        If load_orientation=0 the load acts parallel to the width,
         if load_orientation=90 the load acts parallel to the length
         [deg]
     factors : str, optional
@@ -90,9 +90,9 @@ def load_inclination_factors(shape, phi, cohesion, width, length, vertical_load,
         factor_g = canada_factor_g(phi, cohesion, width, length, vertical_load,
                                    horizontal_load, load_orientation)
     elif factors == 'usace':
-        factor_c = canada_factor_c()
-        factor_q = canada_factor_q()
-        factor_g = canada_factor_g()
+        factor_c = usace_factor_c()
+        factor_q = usace_factor_q()
+        factor_g = usace_factor_g()
 
     return factor_c, factor_q, factor_g
 
@@ -119,7 +119,7 @@ def load_inclination_factor_c(shape, phi, cohesion, width, length,
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht. by default np.nan [m]
+        value as the width. by default np.nan [m]
     vertical_load : float, int
         Vertical load acting on the foundation level. Positive for
         compression [kN]
@@ -127,7 +127,7 @@ def load_inclination_factor_c(shape, phi, cohesion, width, length,
         Horizontal load acting on the foundation level [kN]
     load_orientation : float, int
         Orientation of the horizontal load in the foundation plane.
-        If load_orientation=0 the load acts parallel to the widht,
+        If load_orientation=0 the load acts parallel to the width,
         if load_orientation=90 the load acts parallel to the length
         [deg]
     factors : str, optional
@@ -165,7 +165,7 @@ def load_inclination_factor_c(shape, phi, cohesion, width, length,
         factor_c = canada_factor_c(phi, cohesion, width, length, vertical_load,
                                    horizontal_load, load_orientation)
     elif factors == 'usace':
-        factor_c = canada_factor_c()
+        factor_c = usace_factor_c()
 
     return factor_c
 
@@ -192,7 +192,7 @@ def load_inclination_factor_q(shape, phi, cohesion, width, length,
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht. by default np.nan [m]
+        value as the width. by default np.nan [m]
     vertical_load : float, int
         Vertical load acting on the foundation level. Positive for
         compression [kN]
@@ -200,7 +200,7 @@ def load_inclination_factor_q(shape, phi, cohesion, width, length,
         Horizontal load acting on the foundation level [kN]
     load_orientation : float, int
         Orientation of the horizontal load in the foundation plane.
-        If load_orientation=0 the load acts parallel to the widht,
+        If load_orientation=0 the load acts parallel to the width,
         if load_orientation=90 the load acts parallel to the length
         [deg]
     factors : str, optional
@@ -238,7 +238,7 @@ def load_inclination_factor_q(shape, phi, cohesion, width, length,
         factor_q = canada_factor_q(phi, cohesion, width, length, vertical_load,
                                    horizontal_load, load_orientation)
     elif factors == 'usace':
-        factor_q = canada_factor_q()
+        factor_q = usace_factor_q()
 
     return factor_q
 
@@ -265,7 +265,7 @@ def load_inclination_factor_g(shape, phi, cohesion, width, length,
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht. by default np.nan [m]
+        value as the width. by default np.nan [m]
     vertical_load : float, int
         Vertical load acting on the foundation level. Positive for
         compression [kN]
@@ -273,7 +273,7 @@ def load_inclination_factor_g(shape, phi, cohesion, width, length,
         Horizontal load acting on the foundation level [kN]
     load_orientation : float, int
         Orientation of the horizontal load in the foundation plane.
-        If load_orientation=0 the load acts parallel to the widht,
+        If load_orientation=0 the load acts parallel to the width,
         if load_orientation=90 the load acts parallel to the length
         [deg]
     factors : str, optional
@@ -311,7 +311,7 @@ def load_inclination_factor_g(shape, phi, cohesion, width, length,
         factor_g = canada_factor_g(phi, cohesion, width, length, vertical_load,
                                    horizontal_load, load_orientation)
     elif factors == 'usace':
-        factor_g = canada_factor_g()
+        factor_g = usace_factor_g()
 
     return factor_g
 
@@ -351,7 +351,7 @@ def canada_factor_c(phi, cohesion, width, length, vertical_load,
         Horizontal load acting on the foundation level [kN]
     load_orientation : float, int
         Orientation of the horizontal load in the foundation plane.
-        If load_orientation=0 the load acts parallel to the widht,
+        If load_orientation=0 the load acts parallel to the width,
         if load_orientation=90 the load acts parallel to the length.
         [deg]
 
@@ -395,7 +395,7 @@ def canada_factor_q(phi, cohesion, width, length, vertical_load,
         Horizontal load acting on the foundation level [kN]
     load_orientation : float, int
         Orientation of the horizontal load in the foundation plane.
-        If load_orientation=0 the load acts parallel to the widht,
+        If load_orientation=0 the load acts parallel to the width,
         if load_orientation=90 the load acts parallel to the length.
         [deg]
 
@@ -435,7 +435,7 @@ def canada_factor_g(phi, cohesion, width, length, vertical_load,
         Horizontal load acting on the foundation level [kN]
     load_orientation : float, int
         Orientation of the horizontal load in the foundation plane.
-        If load_orientation=0 the load acts parallel to the widht,
+        If load_orientation=0 the load acts parallel to the width,
         if load_orientation=90 the load acts parallel to the length.
         [deg]
 
@@ -466,7 +466,7 @@ def canada_factor_m(width, length, load_orientation):
         Length of the foundation [m]
     load_orientation : float, int
         Orientation of the horizontal load in the foundation plane.
-        If load_orientation=0 the load acts parallel to the widht,
+        If load_orientation=0 the load acts parallel to the width,
         if load_orientation=90 the load acts parallel to the length.
         [deg]
 

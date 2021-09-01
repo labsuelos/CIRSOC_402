@@ -15,9 +15,8 @@ T = self-straining load
 W = wind load
 Wi = wind-on-ice
 '''
-
-from loadclass import LoadFactors
-from loadclass import LoadFactorDict
+from cirsoc_402.load.loadfactor import LoadFactors
+from cirsoc_402.load.loadfactor import LoadFactorDict
 
 # ASCE 07 2.3.2 and 2.3.4
 ultimate = LoadFactorDict()
@@ -172,8 +171,8 @@ service['LC'+str(idx)] = LoadFactors(D=1, L=1, Di=0.7)
 
 idx += 1
 # D +  0.7 Di + 0.7 Wi + S
-service['LC'+str(idx)] = LoadFactors(D=1, Di=0.7,, Wi=0.7, S=1)
+service['LC'+str(idx)] = LoadFactors(D=1, Di=0.7, Wi=0.7, S=1)
 
 idx += 1
 # 0.6 D +  0.7 Di + 0.7 Wi
-service['LC'+str(idx)] = LoadFactors(D=0.6, Di=0.7,, Wi=0.7)
+service['LC'+str(idx)] = LoadFactors(D=0.6, Di=0.7, Wi=0.7)

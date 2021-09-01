@@ -2,13 +2,14 @@
 equation
 '''
 import numpy as np
-from bearing_factors import bearing_factor_nq, bearing_factor_nc
 
-from constants import BEARINGFACTORS, DEFAULTBEARINGFACTORS
-from exceptions import BearingFactorsError
-from exceptions import BearingLengthSquareError
-from exceptions import BearingLengthCircularError
-from exceptions import BearingSizeError
+from cirsoc_402.constants import BEARINGFACTORS, DEFAULTBEARINGFACTORS, BEARINGSHAPE
+from cirsoc_402.exceptions import BearingFactorsError
+from cirsoc_402.exceptions import BearingShapeError, BearingWidthError, BearingLengthError
+from cirsoc_402.exceptions import BearingLengthSquareError
+from cirsoc_402.exceptions import BearingLengthCircularError
+from cirsoc_402.exceptions import BearingSizeError
+from cirsoc_402.bearing.bearing_factors import bearing_factor_nq, bearing_factor_nc
 
 
 def shape_factors(shape, phi, width, length=np.nan,
@@ -31,7 +32,7 @@ def shape_factors(shape, phi, width, length=np.nan,
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht. by default np.nan [m]
+        value as the width. by default np.nan [m]
     factors : str, optional
         Set of dimensionless correction factors for the cohesion,
         surcharge and soil weight terms due to the depth, shape, load
@@ -71,13 +72,13 @@ def shape_factors(shape, phi, width, length=np.nan,
         factor_q = cirsoc_factor_q(shape, phi, width=width, length=length)
         factor_g = cirsoc_factor_g(shape, width=width, length=length)
     elif factors == 'canada':
-        factor_c = canada_factor_c(phi, widht, length)
-        factor_q = canada_factor_q(phi, widht, length)
-        factor_g = canada_factor_g(phi, widht, length)
+        factor_c = canada_factor_c(phi, width, length)
+        factor_q = canada_factor_q(phi, width, length)
+        factor_g = canada_factor_g(phi, width, length)
     elif factors == 'usace':
-        factor_c = canada_factor_c()
-        factor_q = canada_factor_q()
-        factor_g = canada_factor_g()
+        factor_c = usace_factor_c()
+        factor_q = usace_factor_q()
+        factor_g = usace_factor_g()
 
     return factor_c, factor_q, factor_g
 
@@ -101,7 +102,7 @@ def shape_factor_c(shape, phi, width=np.nan, length=np.nan,
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht. by default np.nan [m]
+        value as the width. by default np.nan [m]
     factors : str, optional
         Set of dimensionless correction factors for the cohesion,
         surcharge and soil weight terms due to the depth, shape, load
@@ -134,9 +135,9 @@ def shape_factor_c(shape, phi, width=np.nan, length=np.nan,
     elif factors == 'cirsoc':
         factor_c = cirsoc_factor_c(shape, phi, width=width, length=length)
     elif factors == 'canada':
-        factor_c = canada_factor_c(phi, widht, length)
+        factor_c = canada_factor_c(phi, width, length)
     elif factors == 'usace':
-        factor_c = canada_factor_c()
+        factor_c = usace_factor_c()
 
     return factor_c
 
@@ -159,7 +160,7 @@ def shape_factor_q(shape, phi, width=np.nan, length=np.nan, factors=DEFAULTBEARI
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht. by default np.nan [m]
+        value as the width. by default np.nan [m]
     factors : str, optional
         Set of dimensionless correction factors for the cohesion,
         surcharge and soil weight terms due to the depth, shape, load
@@ -192,9 +193,9 @@ def shape_factor_q(shape, phi, width=np.nan, length=np.nan, factors=DEFAULTBEARI
     elif factors == 'cirsoc':
         factor_q = cirsoc_factor_q(shape, phi, width=width, length=length)
     elif factors == 'canada':
-        factor_q = canada_factor_q(phi, widht, length)
+        factor_q = canada_factor_q(phi, width, length)
     elif factors == 'usace':
-        factor_q = canada_factor_q()
+        factor_q = usace_factor_q()
 
     return factor_q
 
@@ -218,7 +219,7 @@ def shape_factor_g(shape, phi, width=np.nan, length=np.nan,
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht. by default np.nan [m]
+        value as the width. by default np.nan [m]
     factors : str, optional
         Set of dimensionless correction factors for the cohesion,
         surcharge and soil weight terms due to the depth, shape, load
@@ -251,9 +252,9 @@ def shape_factor_g(shape, phi, width=np.nan, length=np.nan,
     elif factors == 'cirsoc':
         factor_g = cirsoc_factor_g(shape, width=width, length=length)
     elif factors == 'canada':
-        factor_g = canada_factor_g(phi, widht, length)
+        factor_g = canada_factor_g(phi, width, length)
     elif factors == 'usace':
-        factor_g = canada_factor_g()
+        factor_g = usace_factor_g()
 
     return factor_g
 
@@ -276,7 +277,7 @@ def shape_checks(shape, width, length):
         Length of the foundation for rectangular foundations. For
         circular foundations no value needs to be provided or np.nan.
         For square foundations no value needs to be provided or the same
-        value as the widht.
+        value as the width.
     
     Returns
     -------
@@ -314,13 +315,13 @@ def shape_checks(shape, width, length):
         if np.isnan(length):
             raise BearingLengthError()
     
-    if shape in ['circular', 'circular', 'circulo'] and np.isnan(lenght):
+    if shape in ['circular', 'circular', 'circulo'] and np.isnan(length):
         length = width
-    if shape in ['circular', 'circular', 'circulo'] and not np.isnan(lenght):
+    if shape in ['circular', 'circular', 'circulo'] and not np.isnan(length):
         raise BearingLengthCircularError
-    if shape in ['square', 'cuadrado', 'cuadrada'] and np.isnan(lenght):
+    if shape in ['square', 'cuadrado', 'cuadrada'] and np.isnan(length):
         length = width
-    if shape in ['square', 'cuadrado', 'cuadrada'] and not np.isnan(lenght):
+    if shape in ['square', 'cuadrado', 'cuadrada'] and not np.isnan(length):
         raise BearingLengthSquareError
     
     if length < width:
@@ -391,7 +392,7 @@ def canada_factor_c(phi, width, length):
         return 1 + (width / length) * (bearing_factor_nq(phi)/bearing_factor_nc(phi))
 
 
-def canada_factor_q(phi, widht, length):
+def canada_factor_q(phi, width, length):
     '''Shape factor for the surcharge term in the bearing capacity
     equation according to the Canadian Engineering Foundation Manual
     [3]_ (table 10.2). 

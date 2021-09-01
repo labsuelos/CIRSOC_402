@@ -95,7 +95,7 @@ def bearing_factor_ng(phi, method, ground_inclination=0):
     elif method == 'meyerhof':
         factor = (qfactor - 1) * np.tan(1.4 * np.radians(phi)) #Meyerhof (1963)
     elif method == 'canada':
-        if phi==0 and ground_inclination==0
+        if phi==0 and ground_inclination==0:
             # ref [3] eq. 10.8
             factor = 0
         elif phi==0 and ground_inclination>0:

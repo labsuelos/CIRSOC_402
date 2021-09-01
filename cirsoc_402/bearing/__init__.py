@@ -1,4 +1,4 @@
-from capacity import bearingcapacity
+from cirsoc_402.bearing.capacity import bearingcapacity
 
 
 '''

@@ -2,10 +2,11 @@
 capacity equation
 '''
 import numpy as np
-from bearing_factors import bearing_factor_nc
+
 
 from cirsoc_402.constants import BEARINGFACTORS, DEFAULTBEARINGFACTORS
 from cirsoc_402.exceptions import BearingFactorsError
+from cirsoc_402.bearing.bearing_factors import bearing_factor_nc
 
 
 def base_inclination_factors(phi, base_inclination,
@@ -56,13 +57,13 @@ def base_inclination_factors(phi, base_inclination,
         factor_q = cirsoc_factor_q()
         factor_g = cirsoc_factor_g()
     elif factors == 'canada':
-        factor_c = cirsoc_factor_c(phi, base_inclination)
-        factor_q = cirsoc_factor_q(phi, base_inclination)
-        factor_g = cirsoc_factor_g(phi, base_inclination)
+        factor_c = canada_factor_c(phi, base_inclination)
+        factor_q = canada_factor_q(phi, base_inclination)
+        factor_g = canada_factor_g(phi, base_inclination)
     elif factors == 'usace':
-        factor_c = cirsoc_factor_c()
-        factor_q = cirsoc_factor_q()
-        factor_g = cirsoc_factor_g()
+        factor_c = usace_factor_c()
+        factor_q = usace_factor_q()
+        factor_g = usace_factor_g()
 
     return factor_c, factor_q, factor_g
 
@@ -107,11 +108,11 @@ def base_inclination_factor_c(phi, base_inclination,
     elif factors == 'cirsoc':
         factor_c = cirsoc_factor_c()
     elif factors == 'canada':
-        factor_c = cirsoc_factor_c(phi, base_inclination)
+        factor_c = canada_factor_c(phi, base_inclination)
     elif factors == 'usace':
-        factor_c = cirsoc_factor_c()
+        factor_c = usace_factor_c()
 
-    return factor_c, factor_q, factor_g
+    return factor_c
 
 
 def base_inclination_factor_q(phi, base_inclination,
@@ -154,9 +155,9 @@ def base_inclination_factor_q(phi, base_inclination,
     elif factors == 'cirsoc':
         factor_q = cirsoc_factor_q()
     elif factors == 'canada':
-        factor_q = cirsoc_factor_q(phi, base_inclination)
+        factor_q = canada_factor_q(phi, base_inclination)
     elif factors == 'usace':
-        factor_q = cirsoc_factor_q()
+        factor_q = usace_factor_q()
 
     return factor_q
 
@@ -201,9 +202,9 @@ def base_inclination_factor_g(phi, base_inclination,
     elif factors == 'cirsoc':
         factor_g = cirsoc_factor_g()
     elif factors == 'canada':
-        factor_g = cirsoc_factor_g(phi, base_inclination)
+        factor_g = canada_factor_g(phi, base_inclination)
     elif factors == 'usace':
-        factor_g = cirsoc_factor_g()
+        factor_g = usace_factor_g()
 
     return factor_g
 
@@ -243,7 +244,7 @@ def canada_factor_c(phi, base_inclination):
     if phi == 0:
         factor = 1 - (2 * np.radians(base_inclination)) / (np.pi + 2)
     else:
-        qfactor = canada_factor_q(base_inclination)
+        qfactor = canada_factor_q(phi, base_inclination)
         factor = qfactor - (1 - qfactor) / (bearing_factor_nc(phi) * np.tan(np.radians(phi)))
     return factor
 

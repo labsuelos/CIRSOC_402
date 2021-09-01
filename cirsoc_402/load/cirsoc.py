@@ -16,8 +16,8 @@ W = wind load
 Wi = wind-on-ice
 '''
 
-from loadclass import LoadFactors
-from loadclass import LoadFactorDict
+from cirsoc_402.load.loadfactor import LoadFactors
+from cirsoc_402.load.loadfactor import LoadFactorDict
 
 # CIRSOC 201 9.2.1
 # CIRSOC 301 A.4.2
