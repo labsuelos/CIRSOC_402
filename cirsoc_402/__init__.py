@@ -5,4 +5,4 @@ from cirsoc_402.shallow import footing
 
 from cirsoc_402.load import Load
 from cirsoc_402.load import LoadGroup
-#from cirsoc_402.load import LoadCombination
+from cirsoc_402.load import LoadCombination
