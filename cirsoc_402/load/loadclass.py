@@ -219,14 +219,21 @@ class _LoadBase:
         theta : float, int
             rotation arround the x axis [deg]
         '''
+        delta = self.excentricity()
+
         force = _rotation_matrix(theta).dot(np.array([self.yforce, self.zforce]))
         self.yforce = force[0]
         self.zforce = force[1]
 
-        moment = _rotation_matrix(theta).dot(np.array([self.ymoment, self.zmoment]))
-        self.ymoment = moment[0]
-        self.zmoment = moment[1]
-        self.xtheta = self.xtheta + theta
+        deltarot = _rotation_matrix(theta).dot(np.array([delta[1], delta[2]]))
+        delta = np.array([delta[0], deltarot[0], deltarot[1]])
+
+        moment = np.cross(delta, [self.xforce, self.yforce, self.zforce])
+
+        self.xmoment = moment[0]
+        self.ymoment = moment[1]
+        self.ymoment = moment[2]
+        self.ztheta = self.xtheta + theta
 
     def yrotate(self, theta):
         '''Updates forces and movements for a rotation of the reference
@@ -237,14 +244,21 @@ class _LoadBase:
         theta : float, int
             rotation arround the y axis [deg]
         '''
-        force = _rotation_matrix(theta).dot(np.array([self.xforce, self.zforce]))
-        self.xforce = force[0]
-        self.zforce = force[1]
+        delta = self.excentricity()
 
-        moment = _rotation_matrix(theta).dot(np.array([self.xmoment, self.zmoment]))
+        force = _rotation_matrix(theta).dot(np.array([self.zforce, self.xforce]))
+        self.xforce = force[1]
+        self.zforce = force[0]
+
+        deltarot = _rotation_matrix(theta).dot(np.array([delta[2], delta[0]]))
+        delta = np.array([deltarot[1], delta[1], deltarot[0]])
+
+        moment = np.cross(delta, [self.xforce, self.yforce, self.zforce])
+
         self.xmoment = moment[0]
-        self.zmoment = moment[1]
-        self.ytheta = self.ytheta + theta
+        self.ymoment = moment[1]
+        self.ymoment = moment[2]
+        self.ztheta = self.ytheta + theta
     
     def zrotate(self, theta):
         '''Updates forces and movements for a rotation of the reference
@@ -255,13 +269,20 @@ class _LoadBase:
         theta : float, int
             rotation arround the z axis [deg]
         '''
+        delta = self.excentricity()
+
         force = _rotation_matrix(theta).dot(np.array([self.xforce, self.yforce]))
         self.xforce = force[0]
         self.yforce = force[1]
 
-        moment = _rotation_matrix(theta).dot(np.array([self.xmoment, self.ymoment]))
+        deltarot = _rotation_matrix(theta).dot(np.array([delta[0], delta[1]]))
+        delta = np.array([deltarot[0], deltarot[1], delta[2]])
+
+        moment = np.cross(delta, [self.xforce, self.yforce, self.zforce])
+
         self.xmoment = moment[0]
         self.ymoment = moment[1]
+        self.ymoment = moment[2]
         self.ztheta = self.ztheta + theta
 
     def rotate(self, xtheta, ytheta, ztheta):
@@ -281,16 +302,28 @@ class _LoadBase:
         self.yrotate(ytheta)
         self.zrotate(ztheta)
 
+    def excentricity(self):
+        if self.xforce==0 and self.yforce==0 and self.zforce==0:
+            if self.xmoment!=0 or self.ymoment!=0 or self.zmoment!=0:
+                raise RuntimeError("Excentricity cannot be computed with no actign force.")
+        forcematrix = np.array([[0, self.zforce, -self.yforce],
+                                [-self.zforce, 0, self.xforce],
+                                [self.yforce, -self.xforce, 0]])
+        delta = np.linalg.solve(forcematrix, [self.xmoment, self.ymoment, self.zmoment])
+        return delta[0], delta[1], delta[2]
+
     def toorigin(self):
         '''Revertns the reference point to the origin, updating the
         forces and moments.
         '''
-        self.xshift(-self.xcoord)
-        self.yshift(-self.ycoord)
-        self.zshift(-self.zcoord)
         self.xrotate(-self.xtheta)
         self.yrotate(-self.ytheta)
         self.zrotate(-self.ztheta)
+
+        self.xshift(-self.xcoord)
+        self.yshift(-self.ycoord)
+        self.zshift(-self.zcoord)
+        
 
     def resetorigin(self):
         '''Sets the current reference point as the origin, seting the

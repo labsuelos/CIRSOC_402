@@ -107,4 +107,6 @@ def bearing_factor_ng(phi, method, ground_inclination=0):
         else:
             # ref [3] eq. 10.5
             factor = 0.0663 * np.exp(0.1623 * phi)
+    elif method in ['vesic pile', 'vesic pilote']:
+            factor = 1
     return factor
