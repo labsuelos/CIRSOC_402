@@ -3,16 +3,11 @@ equation
 '''
 import numpy as np
 
-from cirsoc_402.constants import BEARINGFACTORS, DEFAULTBEARINGFACTORS, BEARINGSHAPE
-from cirsoc_402.exceptions import BearingFactorsError
-from cirsoc_402.exceptions import BearingShapeError, BearingWidthError, BearingLengthError
-from cirsoc_402.exceptions import BearingLengthSquareError
-from cirsoc_402.exceptions import BearingLengthCircularError
-from cirsoc_402.exceptions import BearingSizeError
+from cirsoc_402.constants import DEFAULTBEARINGFACTORS
 from cirsoc_402.bearing.bearing_factors import bearing_factor_nq, bearing_factor_nc
 
 
-def shape_factors(shape, phi, width, length=np.nan,
+def shape_factors(shape, phi, effective_width, effective_length,
                   factors=DEFAULTBEARINGFACTORS):
     '''Dimensionless correction factors due to the foundation shape
     for the cohesion, surcharge and soil weight terms of the bearing
@@ -25,14 +20,10 @@ def shape_factors(shape, phi, width, length=np.nan,
         cirsoc_402.constants.BEARINGSHAPE.
     phi : float, int
         Soil friction angle [deg]
-    width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int, optional
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width. by default np.nan [m]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
     factors : str, optional
         Set of dimensionless correction factors for the cohesion,
         surcharge and soil weight terms due to the depth, shape, load
@@ -51,39 +42,41 @@ def shape_factors(shape, phi, width, length=np.nan,
         capacity equation [ ]
         - float : Shape factor for the soil weight term in the bearing
         capacity equation [ ]
-
-    Raises
-    ------
-    BearingFactorsError
-        Exception raised when the the bearing capacity factor group
-        requested by the user is not supported by the code.
     '''
 
-    # All errors must be catch here, following functions do not have
-    # checks
-    shape = shape.lower()
-    length = shape_checks(shape, width, length)
+    if any(np.isnan([phi, effective_length, effective_width])):
+        return np.nan, np.nan, np.nan
     
     factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-    elif factors == 'cirsoc':
-        factor_c = cirsoc_factor_c(shape, phi, width=width, length=length)
-        factor_q = cirsoc_factor_q(shape, phi, width=width, length=length)
-        factor_g = cirsoc_factor_g(shape, width=width, length=length)
+    if factors == 'cirsoc':
+        factor_c = cirsoc_factor_c(shape, phi, effective_width, effective_length)
+        factor_q = cirsoc_factor_q(shape, phi, effective_width, effective_length)
+        factor_g = cirsoc_factor_g(shape, effective_width, effective_length)
     elif factors == 'canada':
-        factor_c = canada_factor_c(phi, width, length)
-        factor_q = canada_factor_q(phi, width, length)
-        factor_g = canada_factor_g(phi, width, length)
-    elif factors == 'usace':
-        factor_c = usace_factor_c()
-        factor_q = usace_factor_q()
-        factor_g = usace_factor_g()
+        factor_c = canada_factor_c(phi, effective_width, effective_length)
+        factor_q = canada_factor_q(phi, effective_width, effective_length)
+        factor_g = canada_factor_g(effective_width, effective_length)
+    elif factors == 'meyerhof ':
+        factor_c = meyerhof_factor_c(phi, effective_width, effective_length)
+        factor_q = meyerhof_factor_q(phi, effective_width, effective_length)
+        factor_g = meyerhof_factor_g(phi, effective_width, effective_length)
+    elif factors == 'hansen ':
+        factor_c = hansen_factor_c(phi, effective_width, effective_length)
+        factor_q = hansen_factor_q(phi, effective_width, effective_length)
+        factor_g = hansen_factor_g(phi, effective_width, effective_length)
+    elif factors == 'vesic ':
+        factor_c = vesic_factor_c(phi, effective_width, effective_length)
+        factor_q = vesic_factor_q(phi, effective_width, effective_length)
+        factor_g = vesic_factor_g(phi, effective_width, effective_length)
+    else:
+        factor_c = np.nan
+        factor_q = np.nan
+        factor_g = np.nan
 
     return factor_c, factor_q, factor_g
 
 
-def shape_factor_c(shape, phi, width=np.nan, length=np.nan,
+def shape_factor_c(shape, phi, effective_width, effective_length,
                    factors=DEFAULTBEARINGFACTORS):
     '''Dimensionless correction factors due to the foundation shape
     for the cohesion term of the bearing capacity equation.
@@ -95,15 +88,11 @@ def shape_factor_c(shape, phi, width=np.nan, length=np.nan,
         cirsoc_402.constants.BEARINGSHAPE.
     phi : float, int
         Soil friction angle [deg]
-    width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int, optional
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width. by default np.nan [m]
-    factors : str, optional
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+    factors : str
         Set of dimensionless correction factors for the cohesion,
         surcharge and soil weight terms due to the depth, shape, load
         inclination, ground inclination and base inclination to be used
@@ -116,33 +105,27 @@ def shape_factor_c(shape, phi, width=np.nan, length=np.nan,
     float, int
         Shape factor for the cohesion term in the bearing capacity
         equation [ ]
-
-    Raises
-    ------
-    BearingFactorsError
-        Exception raised when the the bearing capacity factor group
-        requested by the user is not supported by the code.
     '''
 
-    # All errors must be catch here, following functions do not have
-    # checks
     shape = shape.lower()
-    length = shape_checks(shape, width, length)
     
     factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-    elif factors == 'cirsoc':
-        factor_c = cirsoc_factor_c(shape, phi, width=width, length=length)
+    if factors == 'cirsoc':
+        return cirsoc_factor_c(shape, phi, effective_width, effective_length)
     elif factors == 'canada':
-        factor_c = canada_factor_c(phi, width, length)
-    elif factors == 'usace':
-        factor_c = usace_factor_c()
+        return canada_factor_c(phi, effective_width, effective_length)
+    elif factors == 'meyerhof':
+        return meyerhof_factor_c(phi, effective_width, effective_length)
+    elif factors == 'hansen':
+        return hansen_factor_c(phi, effective_width, effective_length)
+    elif factors == 'vesic':
+        return vesic_factor_c(phi, effective_width, effective_length)
+    else:
+        return np.nan
 
-    return factor_c
 
-
-def shape_factor_q(shape, phi, width=np.nan, length=np.nan, factors=DEFAULTBEARINGFACTORS):
+def shape_factor_q(shape, phi, effective_width, effective_length,
+                   factors=DEFAULTBEARINGFACTORS):
     '''Dimensionless correction factors due to the foundation shape
     for the surcharge term of the bearing capacity equation.
 
@@ -153,15 +136,11 @@ def shape_factor_q(shape, phi, width=np.nan, length=np.nan, factors=DEFAULTBEARI
         cirsoc_402.constants.BEARINGSHAPE.
     phi : float, int
         Soil friction angle [deg]
-    width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int, optional
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width. by default np.nan [m]
-    factors : str, optional
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+    factors : str
         Set of dimensionless correction factors for the cohesion,
         surcharge and soil weight terms due to the depth, shape, load
         inclination, ground inclination and base inclination to be used
@@ -174,33 +153,29 @@ def shape_factor_q(shape, phi, width=np.nan, length=np.nan, factors=DEFAULTBEARI
     float, int
         Shape factor for the surcharge term in the bearing capacity
         equation [ ]
-
-    Raises
-    ------
-    BearingFactorsError
-        Exception raised when the the bearing capacity factor group
-        requested by the user is not supported by the code.
     '''
 
-    # All errors must be catch here, following functions do not have
-    # checks
+    if any(np.isnan([phi, effective_length, effective_width])):
+        return np.nan
+
     shape = shape.lower()
-    length = shape_checks(shape, width, length)
     
     factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-    elif factors == 'cirsoc':
-        factor_q = cirsoc_factor_q(shape, phi, width=width, length=length)
+    if  factors == 'cirsoc':
+        return cirsoc_factor_q(shape, phi, effective_width, effective_length)
     elif factors == 'canada':
-        factor_q = canada_factor_q(phi, width, length)
-    elif factors == 'usace':
-        factor_q = usace_factor_q()
+        return canada_factor_q(phi, effective_width, effective_length)
+    elif factors == 'meyerhof':
+        return meyerhof_factor_q(phi, effective_width, effective_length)
+    elif factors == 'hansen':
+        return hansen_factor_q(phi, effective_width, effective_length)
+    elif factors == 'vesic':
+        return vesic_factor_q(phi, effective_width, effective_length)
+    else:
+        return np.nan
 
-    return factor_q
 
-
-def shape_factor_g(shape, phi, width=np.nan, length=np.nan,
+def shape_factor_g(shape, phi, effective_width, effective_length,
                    factors=DEFAULTBEARINGFACTORS):
     '''Dimensionless correction factors due to the foundation shape
     for the soil weight term of the bearing capacity equation.
@@ -212,15 +187,11 @@ def shape_factor_g(shape, phi, width=np.nan, length=np.nan,
         cirsoc_402.constants.BEARINGSHAPE.
     phi : float, int
         Soil friction angle [deg]
-    width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int, optional
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width. by default np.nan [m]
-    factors : str, optional
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+    factors : str
         Set of dimensionless correction factors for the cohesion,
         surcharge and soil weight terms due to the depth, shape, load
         inclination, ground inclination and base inclination to be used
@@ -233,106 +204,29 @@ def shape_factor_g(shape, phi, width=np.nan, length=np.nan,
     float, int
         Shape factor for the soil weight term in the bearing capacity
         equation [ ]
-
-    Raises
-    ------
-    BearingFactorsError
-        Exception raised when the the bearing capacity factor group
-        requested by the user is not supported by the code.
     '''
 
-    # All errors must be catch here, following functions do not have
-    # checks
     shape = shape.lower()
-    length = shape_checks(shape, width, length)
     
     factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-    elif factors == 'cirsoc':
-        factor_g = cirsoc_factor_g(shape, width=width, length=length)
+    if factors == 'cirsoc':
+        return cirsoc_factor_g(shape, effective_width, effective_length)
     elif factors == 'canada':
-        factor_g = canada_factor_g(phi, width, length)
-    elif factors == 'usace':
-        factor_g = usace_factor_g()
-
-    return factor_g
-
-
-def shape_checks(shape, width, length):
-    '''Chekcs input values before computing the dimensionless correction
-    factor due to the foundation shape in the bearing capacity equation.
-
-    Parameters
-    ----------
-    shape : str
-        Shape of the foundation. The supported shapes can be seen with
-        cirsoc_402.constants.BEARINGSHAPE.
-    phi : float, int
-        Soil friction angle [deg]
-    width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width.
-    
-    Returns
-    -------
-    float, int
-        Length of the foundation for rectangular foundations. For
-        circular and square foundations length=width
-
-    Raises
-    ------
-    BearingShapeError
-        Exception raised when the shape in the bearing capacity
-        calculation requested by the user is not supported by the code.
-    BearingWidthError
-        Exception raised when the user failed to provide the width in for
-        bearing capacity formula
-    BearingLengthError
-        Exception raised when the user failed to provide the length in
-        for the bearing capacity formula
-    BearingLengthCircularError
-        Exception raised when the the bearing capacity of a circular base
-        is requested but the length doesn't match the width
-    BearingLengthSquareError
-        Exception raised when the the bearing capacity of a square base
-        is requested but the length doesn't match the width
-    BearingSizeError
-        Exception raised when the the bearing capacity of a circular base
-        is requested but the length doesn't match the width
-    '''
-    if shape not in BEARINGSHAPE:
-        raise BearingShapeError(shape)
-    
-    if shape in ['rectangle', 'rectangulo']:
-        if np.isnan(width):
-            raise BearingWidthError()
-        if np.isnan(length):
-            raise BearingLengthError()
-    
-    if shape in ['circular', 'circular', 'circulo'] and np.isnan(length):
-        length = width
-    if shape in ['circular', 'circular', 'circulo'] and not np.isnan(length):
-        raise BearingLengthCircularError
-    if shape in ['square', 'cuadrado', 'cuadrada'] and np.isnan(length):
-        length = width
-    if shape in ['square', 'cuadrado', 'cuadrada'] and not np.isnan(length):
-        raise BearingLengthSquareError
-    
-    if length < width:
-        raise BearingSizeError
-    return length
+        return canada_factor_g(effective_width, effective_length)
+    elif factors == 'meyerhof':
+        return meyerhof_factor_g(phi, effective_width, effective_length)
+    elif factors == 'hansen':
+        return hansen_factor_g(phi, effective_width, effective_length)
+    elif factors == 'vesic':
+        return vesic_factor_g(phi, effective_width, effective_length)
+    else:
+        return np.nan
 
 
-def cirsoc_factor_c(shape, phi, width, length):
+def cirsoc_factor_c(shape, phi, effective_width, effective_length):
     shape = shape.lower()
     if shape in ['rectangle', 'rectangulo']:
-        factor = 1 + (width/length) * (bearing_factor_nq(phi) \
+        factor = 1 + (effective_width/effective_length) * (bearing_factor_nq(phi) \
                  / bearing_factor_nc(phi))
     elif shape in ['square', 'cuadrado', 'cuadrada']:
         factor = 1 + (1) * (bearing_factor_nq(phi) / bearing_factor_nc(phi))
@@ -341,10 +235,10 @@ def cirsoc_factor_c(shape, phi, width, length):
     return factor
 
 
-def cirsoc_factor_q(shape, phi, width, length):
+def cirsoc_factor_q(shape, phi, effective_width, effective_length):
     shape = shape.lower()
     if shape in ['rectangle', 'rectangulo']:
-        factor = 1 + (width / length) * np.tan(np.radians(phi))
+        factor = 1 + (effective_width / effective_length) * np.tan(np.radians(phi))
     elif shape in ['square', 'cuadrado', 'cuadrada']:
         factor = 1 + (1) * np.tan(np.radians(phi))
     elif shape in ['circular', 'circle', 'circulo', 'circular']:
@@ -352,10 +246,10 @@ def cirsoc_factor_q(shape, phi, width, length):
     return factor
 
 
-def cirsoc_factor_g(shape, width, length):
+def cirsoc_factor_g(shape, effective_width, effective_length):
     shape = shape.lower()
     if shape in ['rectangle', 'rectangulo']:
-        factor = 1 - 0.4 * (width / length)
+        factor = 1 - 0.4 * (effective_width / effective_length)
     elif shape in ['square', 'cuadrado', 'cuadrada']:
         factor = 1 - 0.4 * (1)
     elif shape in ['circular', 'circle', 'circulo', 'circular']:
@@ -363,7 +257,7 @@ def cirsoc_factor_g(shape, width, length):
     return factor
 
 
-def canada_factor_c(phi, width, length):
+def canada_factor_c(phi, effective_width, effective_length):
     '''Shape factor for the cohesion term in the bearing capacity
     equation according to the Canadian Engineering Foundation Manual
     [3]_ (table 10.2). 
@@ -372,11 +266,10 @@ def canada_factor_c(phi, width, length):
     ----------
     phi : float, int
         Soil friction angle [deg]
-    depth : float, int
-        Depth of the foundation level [m]
-    length : float, int
-        Length of the foundation for rectangular foundations. For
-        circular and square foundations length=width [m]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
 
     Returns
     -------
@@ -385,14 +278,13 @@ def canada_factor_c(phi, width, length):
         equation [ ]
     '''
 
+    if effective_length == 0:
+        return np.nan
     # ref [3] table 10.2 Scs factor
-    if phi==0:
-        return 1 + width / (5 * length)
-    else:
-        return 1 + (width / length) * (bearing_factor_nq(phi)/bearing_factor_nc(phi))
+    return 1 + effective_width / effective_length * bearing_factor_nq(phi) /bearing_factor_nc(phi)
 
 
-def canada_factor_q(phi, width, length):
+def canada_factor_q(phi, effective_width, effective_length):
     '''Shape factor for the surcharge term in the bearing capacity
     equation according to the Canadian Engineering Foundation Manual
     [3]_ (table 10.2). 
@@ -401,11 +293,87 @@ def canada_factor_q(phi, width, length):
     ----------
     phi : float, int
         Soil friction angle [deg]
-    depth : float, int
-        Depth of the foundation level [m]
-    length : float, int
-        Length of the foundation for rectangular foundations. For
-        circular and square foundations length=width [m]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+
+    Returns
+    -------
+    float, int
+        Shape factor for the surcharge term in the bearing capacity
+        equation [ ]
+    '''
+    if effective_length == 0:
+        return np.nan
+    # ref [3] table 10.2 Sqs factor
+    return 1 + effective_width / effective_length * np.tan(np.radians(phi))
+
+
+def canada_factor_g(effective_width, effective_length):
+    '''Shape factor for the soil weight term in the bearing capacity
+    equation according to the Canadian Engineering Foundation Manual
+    [3]_ (table 10.2). 
+
+    Parameters
+    ----------
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m]
+
+    Returns
+    -------
+    float, int
+        Shape factor for the soil weight term in the bearing capacity
+        equation [ ]
+    '''
+    if effective_length == 0:
+        return np.nan
+    # ref [3] table 10.2 Sgs factor
+    return 1 - 0.4 * effective_width / effective_length
+
+
+def meyerhof_factor_c(phi, effective_width, effective_length):
+    '''Shape factor for the cohesion term in the bearing capacity
+    equation according to Meyerhof [5]_ [6]_ as stated in the USACE
+    manual [1]_ (table 4-3).
+
+    Parameters
+    ----------
+    phi : float, int
+        Soil friction angle [deg]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+
+    Returns
+    -------
+    float, int
+        Shape factor for the cohesion term in the bearing capacity
+        equation [ ]
+    '''
+    # ref [1] table 4-3
+    if effective_length == 0:
+        return np.nan
+    nphi = np.tan(np.radians(45 + phi / 2))**2
+    return 1 + 0.2 * nphi * effective_width / effective_length
+
+
+def meyerhof_factor_q(phi, effective_width, effective_length):
+    '''Shape factor for the surcharge term in the bearing capacity
+    equation according to Meyerhof [5]_ [6]_ as stated in the USACE
+    manual [1]_ (table 4-3).
+
+    Parameters
+    ----------
+    phi : float, int
+        Soil friction angle [deg]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
 
     Returns
     -------
@@ -414,27 +382,36 @@ def canada_factor_q(phi, width, length):
         equation [ ]
     '''
 
-    # ref [3] table 10.2 Sqs factor
+    # ref [1] table 4-3
+    if effective_length == 0:
+        return np.nan
     if phi == 0:
         return 1
+    elif phi > 10:
+        nphi = np.tan(np.radians(45 + phi / 2))**2
+        return 1 + 0.1 * nphi * effective_width / effective_length
+    elif 0 < phi and phi <=10:
+        nphi = np.tan(np.radians(45 + 10 / 2))**2
+        factor10 = 1 + 0.1 * nphi * effective_width / effective_length
+        factor0 = 1
+        return (factor10 - factor0) * phi / 10 + factor0
     else:
-        return 1 + width / length * np.tan(np.radians(phi))
+        return np.nan
 
 
-def canada_factor_g(phi, width, length):
+def meyerhof_factor_g(phi, effective_width, effective_length):
     '''Shape factor for the soil weight term in the bearing capacity
-    equation according to the Canadian Engineering Foundation Manual
-    [3]_ (table 10.2). 
+    equation according to Meyerhof [5]_ [6]_ as stated in the USACE
+    manual [1]_ (table 4-3).
 
     Parameters
     ----------
     phi : float, int
         Soil friction angle [deg]
-    depth : float, int
-        Depth of the foundation level [m]
-    length : float, int
-        Length of the foundation for rectangular foundations. For
-        circular and square foundations length=width [m]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
 
     Returns
     -------
@@ -442,21 +419,199 @@ def canada_factor_g(phi, width, length):
         Shape factor for the soil weight term in the bearing capacity
         equation [ ]
     '''
+    # ref [1] table 4-3
+    return meyerhof_factor_q(phi, effective_width, effective_length)
 
-    # ref [3] table 10.2 Sqs factor
+
+def hansen_factor_c(phi, effective_width, effective_length):
+    '''Shape factor for the cohesion term in the bearing capacity
+    equation according to Hansen [7]_ as stated in the USACE
+    manual [1]_ (table 4-3). 
+
+    Parameters
+    ----------
+    phi : float, int
+        Soil friction angle [deg]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+
+    Returns
+    -------
+    float, int
+        Shape factor for the cohesion term term in the bearing
+        capacity equation [ ]
+    '''
+
+    # ref [1] table 4-5
+    if effective_length == 0:
+        return np.nan
+    if phi == 0 :
+        return 0.2 * effective_width / effective_length
+    elif phi > 0:
+        nqfactor = bearing_factor_nq(phi)
+        ncfactor = bearing_factor_nc(phi)
+        return 1 + nqfactor / ncfactor * effective_width / effective_length
+    else:
+        return np.nan
+
+
+def hansen_factor_q(phi, effective_width, effective_length):
+    '''Shape factor for the surcharge term in the bearing capacity
+    equation according to Hansen [7]_ as stated in the USACE
+    manual [1]_ (table 4-3). 
+
+    Parameters
+    ----------
+    phi : float, int
+        Soil friction angle [deg]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+
+    Returns
+    -------
+    float, int
+        Shape factor for the surcharge term term in the bearing
+        capacity equation [ ]
+    '''
+
+    # ref [1] table 4-5
+    if effective_length == 0:
+        return np.nan
+    if phi == 0 :
+        return 1
+    elif phi > 0:
+        return 1 + effective_width / effective_length * np.tan(np.radians(phi))
+    else:
+        return np.nan
+
+
+def hansen_factor_g(phi, effective_width, effective_length):
+    '''Shape factor for the soil weight term in the bearing capacity
+    equation according to Hansen [7]_ as stated in the USACE
+    manual [1]_ (table 4-5). 
+
+    Parameters
+    ----------
+    phi : float, int
+        Soil friction angle [deg]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+
+    Returns
+    -------
+    float, int
+        Shape factor for the soil weight term term in the bearing
+        capacity equation [ ]
+    '''
+
+    # ref [1] table 4-5
+    if effective_length == 0:
+        return np.nan
     if phi == 0:
         return 1
+    elif phi > 0:
+        return 1 - 0.4 * effective_width / effective_length
     else:
-        return 1 - 0.4 * width / length
+        return np.nan
 
 
-def usace_factor_c():
-    return 1
+def vesic_factor_c(phi, effective_width, effective_length):
+    '''Shape factor for the cohesion term in the bearing capacity
+    equation according to Vesic [8]_ [9]_  as stated in the USACE
+    manual [1]_ (table 4-6). 
+
+    Parameters
+    ----------
+    phi : float, int
+        Soil friction angle [deg]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+
+    Returns
+    -------
+    float, int
+        Shape factor for the cohesion term term in the bearing
+        capacity equation [ ]
+    '''
+    # ref [1] table 4-6
+    if effective_length == 0:
+        return np.nan
+    if phi == 0 :
+        return 0.2 * effective_width / effective_length
+    elif phi > 0:
+        nqfactor = bearing_factor_nq(phi)
+        ncfactor = bearing_factor_nc(phi)
+        return 1 + nqfactor * effective_width / (ncfactor * effective_length)
+    else:
+        return np.nan
 
 
-def usace_factor_q():
-    return 1
+def vesic_factor_q(phi, effective_width, effective_length):
+    '''Shape factor for the surcharge term in the bearing capacity
+    equation according to Vesic [8]_ [9]_  as stated in the USACE
+    manual [1]_ (table 4-6). 
+
+    Parameters
+    ----------
+    phi : float, int
+        Soil friction angle [deg]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+
+    Returns
+    -------
+    float, int
+        Shape factor for the surcharge term term in the bearing
+        capacity equation [ ]
+    '''
+    # ref [1] table 4-6
+    if effective_length == 0:
+        return np.nan
+    if phi == 0 :
+        return 1
+    elif phi > 0:
+        return 1 + effective_width / effective_length * np.tan(np.radians(phi))
+    else:
+        return np.nan
 
 
-def usace_factor_g():
-    return 1
+def vesic_factor_g(phi, effective_width, effective_length):
+    '''Shape factor for the soil weight term in the bearing capacity
+    equation according to Vesic [8]_ [9]_  as stated in the USACE
+    manual [1]_ (table 4-6). 
+
+    Parameters
+    ----------
+    phi : float, int
+        Soil friction angle [deg]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int
+        effective length of the equivalent rectangular load area [m] 
+
+    Returns
+    -------
+    float, int
+        Shape factor for the soil weight term term in the bearing
+        capacity equation [ ]
+    '''
+
+    # ref [1] table 4-6
+    if effective_length == 0:
+        return np.nan
+    if phi == 0:
+        return 1
+    elif phi > 0:
+        return 1 - 0.4 * effective_width / effective_length
+    else:
+        return np.nan

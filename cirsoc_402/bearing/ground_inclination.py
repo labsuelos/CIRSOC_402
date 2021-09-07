@@ -3,8 +3,7 @@ capacity equation
 '''
 import numpy as np
 
-from cirsoc_402.constants import BEARINGFACTORS, DEFAULTBEARINGFACTORS
-from cirsoc_402.exceptions import BearingFactorsError
+from cirsoc_402.constants import DEFAULTBEARINGFACTORS
 from cirsoc_402.bearing.bearing_factors import bearing_factor_nc
 
 
@@ -38,19 +37,10 @@ def ground_inclination_factors(phi, ground_inclination,
         bearing capacity equation [ ]
         - float : Ground inclination factor for the soil weight term in the
         bearing capacity equation [ ]
-
-    Raises
-    ------
-    BearingFactorsError
-        Exception raised when the the bearing capacity factor group
-        requested by the user is not supported by the code
     '''
-    # All errors must be catch here, following functions do not have
-    # checks
+
     factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-    elif factors == 'cirsoc':
+    if factors == 'cirsoc':
         factor_c = cirsoc_factor_c()
         factor_q = cirsoc_factor_q()
         factor_g = cirsoc_factor_g()
@@ -58,10 +48,22 @@ def ground_inclination_factors(phi, ground_inclination,
         factor_c = canada_factor_c(phi, ground_inclination)
         factor_q = canada_factor_q(ground_inclination)
         factor_g = canada_factor_g(ground_inclination)
-    elif factors == 'usace':
-        factor_c = usace_factor_c()
-        factor_q = usace_factor_q()
-        factor_g = usace_factor_g()
+    elif factors == 'meyerhof':
+        factor_c = meyerhof_factor_c()
+        factor_q = meyerhof_factor_q()
+        factor_g = meyerhof_factor_g()
+    elif factors == 'hansen':
+        factor_c = hansen_factor_c()
+        factor_q = hansen_factor_q()
+        factor_g = hansen_factor_g()
+    elif factors == 'vesic':
+        factor_c = vesic_factor_c()
+        factor_q = vesic_factor_q()
+        factor_g = vesic_factor_g()
+    else:
+        factor_c = np.nan
+        factor_q = np.nan
+        factor_g = np.nan
 
     return factor_c, factor_q, factor_g
 
@@ -90,27 +92,23 @@ def ground_inclination_factor_c(phi, ground_inclination,
     float, int
         Ground inclination factor for the cohesion term in the bearing
         capacity equation [ ]
-
-    Raises
-    ------
-    BearingFactorsError
-        Exception raised when the the bearing capacity factor group
-        requested by the user is not supported by the code
     '''
 
     # All errors must be catch here, following functions do not have
     # checks
     factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-    elif factors == 'cirsoc':
-        factor_c = cirsoc_factor_c()
+    if factors == 'cirsoc':
+        return cirsoc_factor_c()
     elif factors == 'canada':
-        factor_c = canada_factor_c(phi, ground_inclination)
-    elif factors == 'usace':
-        factor_c = usace_factor_c()
-
-    return factor_c
+        return canada_factor_c(phi, ground_inclination)
+    elif factors == 'meyerhof':
+        return meyerhof_factor_c()
+    elif factors == 'hansen':
+        return hansen_factor_c()
+    elif factors == 'vesic':
+        return vesic_factor_c()
+    else:
+        return np.nan
 
 
 def ground_inclination_factor_q(ground_inclination,
@@ -135,27 +133,23 @@ def ground_inclination_factor_q(ground_inclination,
     float, int
         Ground inclination factor for the surcharge term in the bearing
         capacity equation [ ]
-
-    Raises
-    ------
-    BearingFactorsError
-        Exception raised when the the bearing capacity factor group
-        requested by the user is not supported by the code
     '''
 
     # All errors must be catch here, following functions do not have
     # checks
     factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-    elif factors == 'cirsoc':
-        factor_q = cirsoc_factor_q()
+    if factors == 'cirsoc':
+        return cirsoc_factor_q()
     elif factors == 'canada':
-        factor_q = canada_factor_q(ground_inclination)
-    elif factors == 'usace':
-        factor_q = usace_factor_q()
-
-    return factor_q
+        return canada_factor_q(ground_inclination)
+    elif factors == 'meyerhof':
+        return meyerhof_factor_q()
+    elif factors == 'hansen':
+        return hansen_factor_q()
+    elif factors == 'vesic':
+        return vesic_factor_q()
+    else:
+        return np.nan
 
 
 def ground_inclination_factor_g(ground_inclination,
@@ -180,27 +174,23 @@ def ground_inclination_factor_g(ground_inclination,
     float, int
         Ground inclination factor for the soil weight term in the bearing
         capacity equation [ ]
-
-    Raises
-    ------
-    BearingFactorsError
-        Exception raised when the the bearing capacity factor group
-        requested by the user is not supported by the code
     '''
 
     # All errors must be catch here, following functions do not have
     # checks
     factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-    elif factors == 'cirsoc':
-        factor_g = cirsoc_factor_g()
+    if factors == 'cirsoc':
+        return cirsoc_factor_g()
     elif factors == 'canada':
-        factor_g = canada_factor_g(ground_inclination)
-    elif factors == 'usace':
-        factor_g = usace_factor_g()
-
-    return factor_g
+        return canada_factor_g(ground_inclination)
+    elif factors == 'meyerhof':
+        return meyerhof_factor_g()
+    elif factors == 'hansen':
+        return hansen_factor_g()
+    elif factors == 'vesic':
+        return vesic_factor_g()
+    else:
+        return np.nan
 
 
 def cirsoc_factor_c():
@@ -287,13 +277,37 @@ def canada_factor_g(ground_inclination):
     return (1 - np.tan(np.radians(ground_inclination)))**2
 
 
-def usace_factor_c():
+def meyerhof_factor_c():
     return 1
 
 
-def usace_factor_q():
+def meyerhof_factor_q():
     return 1
 
 
-def usace_factor_g():
+def meyerhof_factor_g():
+    return 1
+
+
+def hansen_factor_c():
+    return 1
+
+
+def hansen_factor_q():
+    return 1
+
+
+def hansen_factor_g():
+    return 1
+
+
+def vesic_factor_c():
+    return 1
+
+
+def vesic_factor_q():
+    return 1
+
+
+def vesic_factor_g():
     return 1

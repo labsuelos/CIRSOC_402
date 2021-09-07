@@ -19,14 +19,14 @@ from cirsoc_402.bearing.base_inclination import base_inclination_factor_c, base_
 
 
 def bearingcapacity(shape, method, gamma_nq, gamma_ng, phi, cohesion, depth,
-                    width, length=np.nan, surface_load=0, base_inclination=0,
-                    ground_inclination=0, vertical_load=0,
+                    width, effective_width, effective_length, surface_load=0,
+                    base_inclination=0, ground_inclination=0, vertical_load=0,
                     horizontal_load=0, load_orientation=0, 
                     factors=DEFAULTBEARINGFACTORS):
-    '''Bearing capacity of shallow foundations calculation according to
+    """Bearing capacity of shallow foundations calculation according to
     the CIRSOC 402 code, the USACE manual [1]_, Eurocode 7 [2]_,
     Canadian Foundation Manual [3]_ or the combination
-    of soil weight bearing factor (:math:'N_{\gamma}') and modification
+    of soil weight bearing factor Ngamma and modification
     factors selected by the user. By default the function computes the
     bearing capacity acording to CIRSOC 402.
 
@@ -52,13 +52,12 @@ def bearingcapacity(shape, method, gamma_nq, gamma_ng, phi, cohesion, depth,
     depth : float, int
         Depth of the foundation level [m]
     width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int, optional
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width. by default np.nan [m]
+        Total Width of the foundation. In ciruclar foundations the
+        diameter[m]
+    effective_width : float, int
+        Effective width of the equivalent rectangular load area [m]
+    effective_length : float, int
+        Effective length of the equivalent rectangular load area [m]
     surface_load : float, int, optional
         Load acting on the ground surface considered in the surcharge
         term of the bearing capacity equation. by default 0 [kPa]
@@ -102,33 +101,25 @@ def bearingcapacity(shape, method, gamma_nq, gamma_ng, phi, cohesion, depth,
     BearingFactorsError
         Exception raised when the the bearing capacity factor group
         requested by the user is not supported by the code.
-    '''
-    shape = shape.lower()
-    if shape not in BEARINGSHAPE:
-        raise BearingShapeError(shape)
+    """
 
-    if method not in BEARINGMETHOD:
-        raise BearingMethodError(method)
-    
-    factors = factors.lower()
-    if factors not in BEARINGFACTORS:
-        raise BearingFactorsError(factors)
-
-    qu_c = bearing_c(shape, method, phi, cohesion, depth, width, length=length,
-                     base_inclination=base_inclination,
+    qu_c = bearing_c(shape, method, phi, cohesion, depth, width, effective_width,
+                     effective_length, base_inclination=base_inclination,
                      ground_inclination=ground_inclination,
                      vertical_load=vertical_load,
                      horizontal_load=horizontal_load,
                      load_orientation=load_orientation, factors=factors)
-    qu_q = bearing_q(shape, gamma_nq, phi, cohesion, depth, width, 
-                     length=length,  surface_load=surface_load,
+    qu_q = bearing_q(shape, gamma_nq, phi, cohesion, depth, width,
+                     effective_width, effective_length,
+                     surface_load=surface_load,
                      base_inclination=base_inclination,
                      ground_inclination=ground_inclination,
                      vertical_load=vertical_load,
                      horizontal_load=horizontal_load,
                      load_orientation=load_orientation, factors=factors)
     qu_g = bearing_g(shape, method, gamma_ng, phi, cohesion, depth, width,
-                     length=length, base_inclination=base_inclination,
+                     effective_width, effective_length,
+                     base_inclination=base_inclination,
                      ground_inclination=ground_inclination,
                      vertical_load=vertical_load,
                      horizontal_load=horizontal_load,
@@ -137,14 +128,14 @@ def bearingcapacity(shape, method, gamma_nq, gamma_ng, phi, cohesion, depth,
     return qu_c + qu_q + qu_g
 
 
-def bearing_c(shape, method, phi, cohesion, depth, width, length=np.nan,
-              base_inclination=0, ground_inclination=0, vertical_load=0,
-              horizontal_load=0, load_orientation=0,
+def bearing_c(shape, method, phi, cohesion, depth, width, effective_width,
+              effective_length, base_inclination=0, ground_inclination=0,
+              vertical_load=0, horizontal_load=0, load_orientation=0,
               factors=DEFAULTBEARINGFACTORS):
     '''Cohesion term of the bearing capacity equation for shallow
     foundations according to the CIRSOC 402 code, the USACE manual [1]_,
     Eurocode 7 [2]_, Canadian Foundation Manual [3]_ or the combination
-    of soil weight bearing factor (:math:'N_{\gamma}') and modification
+    of soil weight bearing factor Ngamma and modification
     factors selected by the user. By default the function computes the
     bearing capacity acording to CIRSOC 402.
 
@@ -164,13 +155,12 @@ def bearing_c(shape, method, phi, cohesion, depth, width, length=np.nan,
     depth : float, int
         Depth of the foundation level [m]
     width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int, optional
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width. by default np.nan [m]
+        total Width of the foundation. In ciruclar foundations the
+        diameter[m]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int, optional
+        effective length of the equivalent rectangular load area [m] 
     base_inclination : float, int, optional
         Base slope relative to the horizontal plane, by default 0 [deg]
     ground_inclination : float, int, optional
@@ -202,9 +192,11 @@ def bearing_c(shape, method, phi, cohesion, depth, width, length=np.nan,
         foundations [kN]
     '''
 
-    shape_factor = shape_factor_c(shape, phi, width=width, length=length, factors=factors)
-    depth_factor = depth_factor_c(depth, phi, width, factors=factors)
-    load_factor = load_inclination_factor_c(shape, phi, cohesion, width, length,
+    shape_factor = shape_factor_c(shape, phi, effective_width, effective_length,
+                                  factors=factors)
+    depth_factor = depth_factor_c(phi, depth, width, factors=factors)
+    load_factor = load_inclination_factor_c(phi, cohesion,
+                                            effective_width, effective_length,
                                             vertical_load, horizontal_load,
                                             load_orientation, factors=factors)
     base_factor = base_inclination_factor_c(phi, base_inclination, factors)
@@ -218,14 +210,14 @@ def bearing_c(shape, method, phi, cohesion, depth, width, length=np.nan,
     return qu_c
 
 
-def bearing_q(shape, gamma_nq, phi, cohesion, depth, width, length=np.nan,
-              surface_load=0, base_inclination=0, ground_inclination=0,
-              vertical_load=0, horizontal_load=0, load_orientation=0,
-              factors=DEFAULTBEARINGFACTORS):
+def bearing_q(shape, gamma_nq, phi, cohesion, depth, width, effective_width,
+              effective_length, surface_load=0, base_inclination=0,
+              ground_inclination=0, vertical_load=0, horizontal_load=0,
+              load_orientation=0, factors=DEFAULTBEARINGFACTORS):
     '''Surcharge term of the bearing capacity equation for shallow
     foundations according to the CIRSOC 402 code, the USACE manual [1]_,
     Eurocode 7 [2]_, Canadian Foundation Manual [3]_ or the combination
-    of soil weight bearing factor (:math:'N_{\gamma}') and modification
+    of soil weight bearing factor Ngamma and modification
     factors selected by the user. By default the function computes the
     bearing capacity acording to CIRSOC 402.
 
@@ -244,13 +236,12 @@ def bearing_q(shape, gamma_nq, phi, cohesion, depth, width, length=np.nan,
     depth : float, int
         Depth of the foundation level [m]
     width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int, optional
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width. by default np.nan [m]
+        total Width of the foundation. In ciruclar foundations the
+        diameter[m]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int, optional
+        effective length of the equivalent rectangular load area [m] 
     surface_load : float, int, optional
         Load acting on the ground surface considered in the surcharge
         term of the bearing capacity equation. by default 0 [kPa]
@@ -284,13 +275,17 @@ def bearing_q(shape, gamma_nq, phi, cohesion, depth, width, length=np.nan,
         Surcharge term of the bearing capacity equation for shallow
         foundations [kN]
     '''
-    shape_factor = shape_factor_q(shape, phi, width=width, length=length, factors=factors)
-    depth_factor = depth_factor_q(depth, phi, width, factors=factors)
-    load_factor = load_inclination_factor_q(shape, phi, cohesion, width, length,
+    shape_factor = shape_factor_q(shape, phi, effective_width, effective_length,
+                                  factors=factors)
+    depth_factor = depth_factor_q(phi, depth, width, factors=factors)
+    load_factor = load_inclination_factor_q(phi, cohesion,
+                                            effective_width, effective_length,
                                             vertical_load, horizontal_load,
                                             load_orientation, factors)
-    base_factor = base_inclination_factor_q(phi, base_inclination, factors=factors)
-    ground_factor = ground_inclination_factor_c(phi, ground_inclination, factors=factors)
+    base_factor = base_inclination_factor_q(phi, base_inclination,
+                                            factors=factors)
+    ground_factor = ground_inclination_factor_c(phi, ground_inclination,
+                                                factors=factors)
     
     # ref [3] eq. (10.10)
     qu_q = (surface_load + depth * gamma_nq) * bearing_factor_nq(phi) * \
@@ -299,13 +294,13 @@ def bearing_q(shape, gamma_nq, phi, cohesion, depth, width, length=np.nan,
 
 
 def bearing_g(shape, method, gamma_ng, phi, cohesion, depth, width,
-              length=np.nan, base_inclination=0, ground_inclination=0,
-              vertical_load=0, horizontal_load=0, load_orientation=0,
-              factors=DEFAULTBEARINGFACTORS):
+              effective_width, effective_length, base_inclination=0,
+              ground_inclination=0, vertical_load=0, horizontal_load=0,
+              load_orientation=0, factors=DEFAULTBEARINGFACTORS):
     '''Soil weight term of the bearing capacity equation for shalow
     foundations according to the CIRSOC 402 code, the USACE manual [1]_,
     Eurocode 7 [2]_, Canadian Foundation Manual [3]_ or the combination
-    of soil weight bearing factor (:math:'N_{\gamma}') and modification
+    of soil weight bearing factor Ngamma and modification
     factors selected by the user. By default the function computes the
     bearing capacity acording to CIRSOC 402.
 
@@ -328,13 +323,12 @@ def bearing_g(shape, method, gamma_ng, phi, cohesion, depth, width,
     depth : float, int
         Depth of the foundation level [m]
     width : float, int
-        Width of the foundation. In ciruclar foundations the diameter
-        [m]
-    length : float, int, optional
-        Length of the foundation for rectangular foundations. For
-        circular foundations no value needs to be provided or np.nan.
-        For square foundations no value needs to be provided or the same
-        value as the width. by default np.nan [m]
+        total Width of the foundation. In ciruclar foundations the
+        diameter[m]
+    effective_width : float, int
+        effective width of the equivalent rectangular load area [m] 
+    effective_length : float, int, optional
+        effective length of the equivalent rectangular load area [m]
     base_inclination : float, int, optional
         Base slope relative to the horizontal plane, by default 0 [deg]
     ground_inclination : float, int, optional
@@ -366,23 +360,27 @@ def bearing_g(shape, method, gamma_ng, phi, cohesion, depth, width,
         foundations [kN]
     '''
 
-    shape_factor = shape_factor_g(shape, phi, width=width, length=length, factors=factors)
-    depth_factor = depth_factor_g(depth, phi, width, factors=factors)
-    load_factor = load_inclination_factor_g(shape, phi, cohesion, width, length,
+    shape_factor = shape_factor_g(shape, phi, effective_width, effective_length,
+                                  factors=factors)
+    depth_factor = depth_factor_g(phi, depth, width, factors=factors)
+    load_factor = load_inclination_factor_g(phi, cohesion,
+                                            effective_width, effective_length,
                                             vertical_load, horizontal_load,
                                             load_orientation, factors)
-    base_factor = base_inclination_factor_g(phi, base_inclination, factors=factors)
-    ground_factor = ground_inclination_factor_g(ground_inclination, factors=factors)
+    base_factor = base_inclination_factor_g(phi, base_inclination,
+                                            factors=factors)
+    ground_factor = ground_inclination_factor_g(ground_inclination,
+                                                factors=factors)
     
     bearing_factor = bearing_factor_ng(phi, method,
                                        ground_inclination=ground_inclination)
 
     if shape == ['rectangle', 'rectangulo']:
-        qu_g_width = 0.5 * gamma_ng * width * bearing_factor 
-        qu_g_length = 0.5 * gamma_ng * length * bearing_factor
+        qu_g_width = 0.5 * gamma_ng * effective_width * bearing_factor 
+        qu_g_length = 0.5 * gamma_ng * effective_length * bearing_factor
         qu_g = np.minimum(qu_g_width, qu_g_length)
     else:
-        qu_g = 0.5 * gamma_ng * width * bearing_factor
+        qu_g = 0.5 * gamma_ng * effective_width * bearing_factor
     qu_g = qu_g * bearing_factor_nq(phi) * shape_factor * depth_factor \
            * load_factor * base_factor * ground_factor
     return qu_g

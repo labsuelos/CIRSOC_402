@@ -17,6 +17,7 @@ standard project.
    Software CIRSOC 402 <soft>
    Standard CIRSOC 402 <standard>
    Comments CIRSOC 402 <comments>
+   Developer's corner <developers>
 
 
 Indices and tables

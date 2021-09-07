@@ -5,5 +5,8 @@ capacity of piles
 def tip():
     pass
 
+def bolton():
+    pass
+
 def shaft():
     pass
