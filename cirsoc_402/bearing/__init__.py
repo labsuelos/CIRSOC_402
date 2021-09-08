@@ -1,8 +1,5 @@
-from cirsoc_402.bearing.capacity import bearingcapacity
-
-
 '''
-Module for CPT data processing
+Pacakge for bearing capacity calculations
 
 References
 ----------
@@ -28,3 +25,5 @@ References
 .. [9] Vesić, A. S. (1975).  Bearing Capacity of Shallow Foundations.
     Foundation Engineering Handbook, pp 121-147.
 '''
+
+from cirsoc_402.bearing.capacity import bearingcapacity

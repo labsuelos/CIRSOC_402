@@ -5,6 +5,7 @@ import numpy as np
 
 from cirsoc_402.constants import DEFAULTBEARINGFACTORS
 from cirsoc_402.bearing.bearing_factors import bearing_factor_nc
+from cirsoc_402.bearing.bearing_factors import bearing_factor_nq
 
 
 
@@ -72,13 +73,16 @@ def load_inclination_factors(phi, cohesion, effective_width,
                                    effective_length, vertical_load,
                                    horizontal_load, load_orientation)
     elif factors == 'meyerhof':
-        factor_c = meyerhof_factor_c()
-        factor_q = meyerhof_factor_q()
-        factor_g = meyerhof_factor_g()
+        factor_c = meyerhof_factor_c(phi, vertical_load, horizontal_load)
+        factor_q = meyerhof_factor_q(phi, vertical_load, horizontal_load)
+        factor_g = meyerhof_factor_g(phi, vertical_load, horizontal_load)
     elif factors == 'hansen':
-        factor_c = hansen_factor_c()
-        factor_q = hansen_factor_q()
-        factor_g = hansen_factor_g()
+        factor_c = hansen_factor_c(phi, vertical_load, horizontal_load)
+        factor_q = hansen_factor_q(phi, base_adhesion, effective_width,
+                                   effective_length, vertical_load, horizontal_load)
+        factor_g = hansen_factor_g(phi, base_adhesion, effective_width,
+                                   effective_length, vertical_load, horizontal_load,
+                                   base_inclination)
     elif factors == 'vesic':
         factor_c = vesic_factor_c()
         factor_q = vesic_factor_q()
@@ -140,9 +144,9 @@ def load_inclination_factor_c(phi, cohesion, effective_width,
                                effective_length, vertical_load,
                                horizontal_load, load_orientation)
     elif factors == 'meyerhof':
-        return meyerhof_factor_c()
+        return meyerhof_factor_c(phi, vertical_load, horizontal_load)
     elif factors == 'hansen':
-        return hansen_factor_c()
+        return hansen_factor_c(phi, vertical_load, horizontal_load)
     elif factors == 'vesic':
         return vesic_factor_c()
     else:
@@ -198,9 +202,10 @@ def load_inclination_factor_q(phi, cohesion, effective_width,
                                   effective_length, vertical_load,
                                    horizontal_load, load_orientation)
     elif factors == 'meyerhof':
-        return meyerhof_factor_q()
+        return meyerhof_factor_q(phi, vertical_load, horizontal_load)
     elif factors == 'meyerhof':
-        return hansen_factor_q()
+        return hansen_factor_q(phi, base_adhesion, effective_width,
+                               effective_length, vertical_load, horizontal_load)
     elif factors == 'meyerhof':
         return vesic_factor_q()
     else:
@@ -256,9 +261,11 @@ def load_inclination_factor_g(phi, cohesion, effective_width,
                                    effective_length, vertical_load,
                                    horizontal_load, load_orientation)
     elif factors == 'meyerhof':
-        return meyerhof_factor_g()
+        return meyerhof_factor_g(phi, vertical_load, horizontal_load)
     elif factors == 'hansen':
-        return hansen_factor_g()
+        return hansen_factor_g(phi, base_adhesion, effective_width,
+                               effective_length, vertical_load, horizontal_load,
+                               base_inclination)
     elif factors == 'vesic':
         return vesic_factor_g()
     else:
@@ -310,7 +317,8 @@ def canada_factor_c(phi, cohesion, effective_width, effective_length,
         Load inclination factor for the cohesion term in the bearing
         capacity equation [ ]
     '''
-
+    if vertical_load == 0  and horizontal_load == 0:
+        return 1
     # ref [3] table 10.2 factor Sci
     factor_m = canada_factor_m(effective_width, effective_length, load_orientation)
     if phi==0:
@@ -431,28 +439,70 @@ def canada_factor_m(effective_width, effective_length, load_orientation):
     return ml * np.cos(np.radians(load_orientation))**2 + mb * np.sin(np.radians(load_orientation))**2
 
 
-def meyerhof_factor_c():
-    return 1
+def meyerhof_factor_c(phi, vertical_load, horizontal_load, load_orientation):
+    if vertical_load == 0  and horizontal_load == 0:
+        return 1
+    elif vertical_load == 0 or load_orientation != 90:
+        return np.nan
+    theta = np.rad2deg(np.arctan(horizontal_load / vertical_load))
+    if phi == 0:
+        return 1 - theta / 90
+    elif phi > 0:
+        return (1 - theta / 90)**2
+    else:
+        return np.nan
 
 
-def meyerhof_factor_q():
-    return 1
+def meyerhof_factor_q(phi, vertical_load, horizontal_load, load_orientation):
+    return meyerhof_factor_c(phi, vertical_load, horizontal_load)
 
 
-def meyerhof_factor_g():
-    return 1
+def meyerhof_factor_g(phi, vertical_load, horizontal_load):
+    if vertical_load == 0  and horizontal_load == 0:
+        return 1
+    elif vertical_load == 0:
+        return np.nan
+    theta = np.rad2deg(np.arctan(horizontal_load / vertical_load))
+    if phi == 0:
+        return 1
+    elif theta <= phi:
+        return (1 - theta / phi)**2
+    elif phi < theta:
+        return 0
+    else:
+        return np.nan
 
 
-def hansen_factor_c():
-    return 1
+def hansen_factor_c(phi, base_adhesion, effective_width, effective_length,
+                    vertical_load, horizontal_load):
+    if phi == 0:
+        area = effective_width * effective_length
+        return (1 - (1 - horizontal_load / (area * base_adhesion))**(1/2) ) / 2 
+    elif phi > 0:
+        qfactor = hansen_factor_q(phi, base_adhesion, effective_width,
+                                  effective_length, vertical_load,
+                                  horizontal_load)
+        nqfactor = bearing_factor_nq(phi)
+        return qfactor - (1 - qfactor) / (nqfactor - 1)
+    else:
+        return np.nan
 
 
-def hansen_factor_q():
-    return 1
+def hansen_factor_q(phi, base_adhesion, effective_width, effective_length,
+                    vertical_load, horizontal_load):
+    area = effective_width * effective_length
+    return (1 - 0.5 * horizontal_load / (vertical_load + area * base_adhesion / np.tan(np.radians(phi))))**5
 
 
-def hansen_factor_g():
-    return 1
+def hansen_factor_g(phi, base_adhesion, effective_width, effective_length,
+                    vertical_load, horizontal_load, base_inclination):
+    if base_inclination == 0:
+        area = effective_width * effective_length
+        return (1 - 0.7 * horizontal_load / (vertical_load + area * base_adhesion / np.tan(np.radians(phi))))**5
+    elif base_inclination > 0:
+        return (1 - (0.7  - base_inclination / 450) * horizontal_load / (vertical_load + area * base_adhesion / np.tan(np.radians(phi))))**5
+    else:
+        return np.nan
 
 
 def vesic_factor_c():
@@ -464,4 +514,8 @@ def vesic_factor_q():
 
 
 def vesic_factor_g():
+    return 1
+
+
+def vesic_factor_m():
     return 1
