@@ -6,6 +6,7 @@ import numpy as np
 
 from cirsoc_402.constants import LANGUAGE, LOAD, STANDARD, DEFAULTSTANDARD
 from cirsoc_402.exceptions import StandardError
+from cirsoc_402.load.quaternion import Quaternion
 from cirsoc_402.load.asce import ultimate as asceultimate
 from cirsoc_402.load.asce import service as asceservice
 
@@ -62,22 +63,6 @@ class MyAttr:
                validator(self.name, value)
           instance.__dict__[self.name] = value
 
-
-def _rotation_matrix(theta):
-    '''2D rotation matrix
-
-    Parameters
-    ----------
-    theta : float, int
-        rotation [deg]
-
-    Returns
-    -------
-    np.ndarray
-        rotation matrix
-    '''
-    t = np.radians(theta)
-    return np.array([[np.cos(t), -np.sin(t)],[np.sin(t), np.cos(t)]])
 
 @dataclass
 class _LoadTypeBase:
@@ -153,23 +138,10 @@ class _LoadBase:
     xtheta: float = 0
     ytheta: float = 0
     ztheta: float = 0
-
-    def zshift(self, shift):
-        '''Updates moments for a movement of the reference point in the
-        z direction.
-
-        Parameters
-        ----------
-        shift : float
-            movement of the reference point in the z direction [m]
-        '''
-        self.xmoment = self.xmoment + self.xforce * shift
-        self.ymoment = self.ymoment - self.yforce * shift
-        self.zcoord = self.zcoord + shift
     
     def xshift(self, shift):
-        '''Updates moments for a movement of the reference point in the
-        x direction.
+        '''Updates moments for a movement of the frane of reference in
+        the x direction of the origin coordinate system.
 
         Parameters
         ----------
@@ -181,8 +153,8 @@ class _LoadBase:
         self.xcoord = self.xcoord + shift
 
     def yshift(self, shift):
-        '''Updates moments for a movement of the reference point in the
-        y direction.
+        '''Updates moments for a movement of the frane of reference in
+        the y direction of the origin coordinate system.
 
         Parameters
         ----------
@@ -192,6 +164,19 @@ class _LoadBase:
         self.zmoment = self.zmoment + self.xforce * shift
         self.xmoment = self.xmoment - self.zforce * shift
         self.ycoord = self.ycoord + shift
+    
+    def zshift(self, shift):
+        '''Updates moments for a movement of the frane of reference in
+        the z direction of the origin coordinate system.
+
+        Parameters
+        ----------
+        shift : float
+            movement of the reference point in the z direction [m]
+        '''
+        self.xmoment = self.xmoment + self.xforce * shift
+        self.ymoment = self.ymoment - self.yforce * shift
+        self.zcoord = self.zcoord + shift
     
     def shift(self, xshift, yshift, zshift):
         '''Updates moments for a movement of the reference point in the

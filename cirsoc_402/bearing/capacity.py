@@ -199,7 +199,7 @@ def bearing_c(shape, method, phi, cohesion, depth, width, effective_width,
                                             effective_width, effective_length,
                                             vertical_load, horizontal_load,
                                             load_orientation, factors=factors)
-    base_factor = base_inclination_factor_c(phi, base_inclination, factors)
+    base_factor = base_inclination_factor_c(phi, base_inclination, factors=factors)
     ground_factor = ground_inclination_factor_c(phi, ground_inclination,
                                                 factors=factors)
     
@@ -281,7 +281,7 @@ def bearing_q(shape, gamma_nq, phi, cohesion, depth, width, effective_width,
     load_factor = load_inclination_factor_q(phi, cohesion,
                                             effective_width, effective_length,
                                             vertical_load, horizontal_load,
-                                            load_orientation, factors)
+                                            load_orientation, factors=factors)
     base_factor = base_inclination_factor_q(phi, base_inclination,
                                             factors=factors)
     ground_factor = ground_inclination_factor_c(phi, ground_inclination,
@@ -366,7 +366,7 @@ def bearing_g(shape, method, gamma_ng, phi, cohesion, depth, width,
     load_factor = load_inclination_factor_g(phi, cohesion,
                                             effective_width, effective_length,
                                             vertical_load, horizontal_load,
-                                            load_orientation, factors)
+                                            load_orientation, factors=factors)
     base_factor = base_inclination_factor_g(phi, base_inclination,
                                             factors=factors)
     ground_factor = ground_inclination_factor_g(ground_inclination,

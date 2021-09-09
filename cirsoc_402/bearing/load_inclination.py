@@ -73,11 +73,12 @@ def load_inclination_factors(phi, cohesion, effective_width,
                                    effective_length, vertical_load,
                                    horizontal_load, load_orientation)
     elif factors == 'meyerhof':
-        factor_c = meyerhof_factor_c(phi, vertical_load, horizontal_load)
-        factor_q = meyerhof_factor_q(phi, vertical_load, horizontal_load)
+        factor_c = meyerhof_factor_c(phi, vertical_load, horizontal_load, load_orientation)
+        factor_q = meyerhof_factor_q(phi, vertical_load, horizontal_load, load_orientation)
         factor_g = meyerhof_factor_g(phi, vertical_load, horizontal_load)
     elif factors == 'hansen':
-        factor_c = hansen_factor_c(phi, vertical_load, horizontal_load)
+        factor_c = hansen_factor_c(phi, base_adhesion, effective_width, effective_length,
+                                   vertical_load, horizontal_load)
         factor_q = hansen_factor_q(phi, base_adhesion, effective_width,
                                    effective_length, vertical_load, horizontal_load)
         factor_g = hansen_factor_g(phi, base_adhesion, effective_width,
@@ -144,9 +145,10 @@ def load_inclination_factor_c(phi, cohesion, effective_width,
                                effective_length, vertical_load,
                                horizontal_load, load_orientation)
     elif factors == 'meyerhof':
-        return meyerhof_factor_c(phi, vertical_load, horizontal_load)
+        return meyerhof_factor_c(phi, vertical_load, horizontal_load, load_orientation)
     elif factors == 'hansen':
-        return hansen_factor_c(phi, vertical_load, horizontal_load)
+        return hansen_factor_c(phi, base_adhesion, effective_width, effective_length,
+                               vertical_load, horizontal_load)
     elif factors == 'vesic':
         return vesic_factor_c()
     else:
@@ -454,7 +456,7 @@ def meyerhof_factor_c(phi, vertical_load, horizontal_load, load_orientation):
 
 
 def meyerhof_factor_q(phi, vertical_load, horizontal_load, load_orientation):
-    return meyerhof_factor_c(phi, vertical_load, horizontal_load)
+    return meyerhof_factor_c(phi, vertical_load, horizontal_load, load_orientation)
 
 
 def meyerhof_factor_g(phi, vertical_load, horizontal_load):

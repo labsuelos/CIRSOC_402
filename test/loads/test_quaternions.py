@@ -1,5 +1,4 @@
-'''Module for testing the Quaternion class in
-cirsoc_402.loads.quaternion
+'''Module for testing the Quaternion class in cirsoc_402.loads.quaternion
 '''
 import numpy as np
 import pytest

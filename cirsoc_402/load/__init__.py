@@ -14,3 +14,4 @@ from cirsoc_402.load.loadclass import LoadCombination
 from cirsoc_402.load.loadfactor import LoadFactors
 from cirsoc_402.load.loadfactor import LoadFactorDict
 from cirsoc_402.load.quaternion import Quaternion
+from cirsoc_402.load.referenceframe import ReferenceFrame
