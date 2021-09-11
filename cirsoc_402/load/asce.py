@@ -1,18 +1,30 @@
 '''Module with the load and resistance factors from ASCE 07
 
 D = dead load
+
 Di = weight of ice
+
 E = earthquake load
+
 F = load due to fluids with well-defined pressures and maximum heights 
+
 Fa = flood load
+
 H = load due to lateral earth pressure, ground water pressure, or
 pressure of bulk materials
+
 L = live load
+
 Lr = roof live load
+
 R = rain load
+
 S = snow load
+
 T = self-straining load
+
 W = wind load
+
 Wi = wind-on-ice
 '''
 from cirsoc_402.load.loadfactor import LoadFactors

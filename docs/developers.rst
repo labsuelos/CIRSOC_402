@@ -60,3 +60,7 @@ vast majority fo design cases this is exactly what you need. But, when
 you are trying to work out the fringes, you need to be able to handle
 unexpected stuff and keep going.
 
+.. toctree::
+   :maxdepth: 1
+   
+   Loads and reference systems <developers/loads.ipynb>

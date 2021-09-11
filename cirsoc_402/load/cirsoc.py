@@ -1,18 +1,18 @@
 '''Module with the load and resistance factors from ASCE 07
 
-D = dead load
-Di = weight of ice
-E = earthquake load
-F = load due to fluids with well-defined pressures and maximum heights 
-Fa = flood load
+D = dead load\n
+Di = weight of ice\n
+E = earthquake load\n
+F = load due to fluids with well-defined pressures and maximum heights\n
+Fa = flood load\n
 H = load due to lateral earth pressure, ground water pressure, or
-pressure of bulk materials
-L = live load
-Lr = roof live load
-R = rain load
-S = snow load
-T = self-straining load
-W = wind load
+pressure of bulk materials\n
+L = live load\n
+Lr = roof live load\n
+R = rain load\n
+S = snow load\n
+T = self-straining load\n
+W = wind load\n
 Wi = wind-on-ice
 '''
 

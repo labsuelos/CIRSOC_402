@@ -428,7 +428,7 @@ class _LoadBase:
         xversor = np.array(self.reference.xversor)
         yversor = np.array(self.reference.yversor)
         zversor = np.array(self.reference.zversor)
-        reforigin = [self.reference.xcoord, self.reference.ycoord, self.reference.zcoord]
+        reforigin = [self.reference.origin[0], self.reference.origin[1], self.reference.origin[2]]
         
         force = xversor * self.force[0] + yversor * self.force[1] + zversor * self.force[2]
         forcenorm = np.dot(force, force)**(1/2)
