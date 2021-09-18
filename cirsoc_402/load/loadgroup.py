@@ -3,7 +3,7 @@ import numbers
 
 from cirsoc_402.constants import LOAD
 from cirsoc_402.load.loadclass import Load
-from cirsoc_402.load.loadclass import _LoadBase
+from cirsoc_402.load.loadclass import GenericLoad
 from cirsoc_402.load.referenceframe import ReferenceFrame
 
 
@@ -13,33 +13,33 @@ class LoadGroup():
 
     Attributes
     -------
-    D : _LoadBase
+    D : GenericLoad
         dead load
-    Di : _LoadBase
+    Di : GenericLoad
         weight of ice
-    E : _LoadBase
+    E : GenericLoad
         eqarthquake load
-    F : _LoadBase
+    F : GenericLoad
         load due to fluids with well-defined pressures and maximum
         heights 
-    Fa : _LoadBase
+    Fa : GenericLoad
         flood load
-    H : _LoadBase
+    H : GenericLoad
         load due to lateral earth pressure, ground water pressure, or
         pressure of bulk materials
-    L : _LoadBase
+    L : GenericLoad
         live load
-    Lr : _LoadBase
+    Lr : GenericLoad
         roof live load
-    R : _LoadBase
+    R : GenericLoad
         rain load
-    S : _LoadBase
+    S : GenericLoad
         snow load
-    T : _LoadBase
+    T : GenericLoad
         self-tensing load
-    W : _LoadBase
+    W : GenericLoad
         wind load
-    Wi : _LoadBase
+    Wi : GenericLoad
         wind-on-ice load
 
     Example 1

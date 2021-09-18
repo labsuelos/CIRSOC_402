@@ -2,7 +2,7 @@
 
 from cirsoc_402.constants import DEFAULTSTANDARD
 from cirsoc_402.exceptions import StandardError
-from cirsoc_402.load.loadclass import _LoadBase
+from cirsoc_402.load.loadclass import GenericLoad
 from cirsoc_402.load.asce import ultimate as asceultimate
 from cirsoc_402.load.asce import service as asceservice
 from cirsoc_402.load.cirsoc import ultimate as cirsocultimate
@@ -15,7 +15,7 @@ class LoadCombination(dict):
         self._loadgroup = loadgroup
         
         for lc in self._loadcombinations.keys():
-            self[lc] = _LoadBase()
+            self[lc] = GenericLoad()
             for loadid in self._loadcombinations[lc].__dataclass_fields__.keys():
                 self[lc] = self[lc] + getattr(self._loadcombinations[lc],loadid) * getattr(loadgroup, loadid)
     

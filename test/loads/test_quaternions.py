@@ -82,6 +82,37 @@ def test_repr():
     assert q.__repr__() == '(1.00, nan, nan, 4.00)'
 
 
+def test_eq():
+    '''Test __eq__ method from Quaternion class
+    '''
+
+    vals = [-123, 0, 0.5, 1, 101235]
+    for q0, q1, q2, q3 in itertools.product(vals, vals, vals, vals):
+        quat1 = Quaternion(q0, q1, q2, q3)
+        quat2 = Quaternion(q0, q1, q2, q3)
+        assert quat1==quat2
+
+        quat1 = Quaternion(np.nan, q1, q2, q3)
+        quat2 = Quaternion(q0, q1, q2, q3)
+        assert not(quat1==quat2)
+
+        quat1 = Quaternion(q0, q1, q2, q3)
+        quat2 = Quaternion(np.nan, q1, q2, q3)
+        assert not(quat1==quat2)
+
+        quat1 = Quaternion(np.nan, q1, np.nan, q3)
+        quat2 = Quaternion(np.nan, q1, np.nan, q3)
+        assert not(quat1==quat2)
+    
+    vals1 = [-123, 0, 0.5, 1, 101235]
+    vals2 = [-122, 0.3, 3.5, 4.6, 1235]
+    for q0, q1, q2, q3 in itertools.product(vals1, vals1, vals1, vals1):
+        quat1 = Quaternion(q0, q1, q2, q3)
+        for r0, r1, r2, r3 in itertools.product(vals2, vals2, vals2, vals2):
+            quat2 = Quaternion(r0, r1, r2, r3)
+            assert not(quat1==quat2)
+
+
 def test_add():
     '''Test __add__ method from Quaternion class
     '''

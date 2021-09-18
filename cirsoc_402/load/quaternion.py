@@ -68,6 +68,19 @@ class Quaternion():
     def __repr__(self):
         return "({:.2f}, {:.2f}, {:.2f}, {:.2f})".format(self._coord0, self._coord1, self._coord2, self._coord3)
     
+    def __eq__(self, other):
+        if not isinstance(other, Quaternion):
+            return False
+        if self._coord0 != other._coord0:
+            return False
+        if self._coord1 != other._coord1:
+            return False
+        if self._coord2 != other._coord2:
+            return False
+        if self._coord3 != other._coord3:
+            return False
+        return True
+
     def __add__(self, other):
         if not isinstance(other, Quaternion):
             raise TypeError('Only quaternions can be added to each other.')

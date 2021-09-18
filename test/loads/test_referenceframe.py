@@ -241,6 +241,55 @@ def test_repr():
     assert frame.__repr__() == txt
 
 
+def test_eq():
+    '''Test __eq__ method from ReferenceFrame class
+    '''
+
+    vals = [-123, 0, 0.5, 1, 101235]
+    for x, y, z in itertools.product(vals, vals, vals):
+        frame1 = ReferenceFrame(xcoord=x, ycoord=y, zcoord=z)
+        frame2 = ReferenceFrame(xcoord=x, ycoord=y, zcoord=z)
+        assert(frame1 ==  frame2)
+
+        direction = np.random.random(3)
+        rotation = np.random.random() * 360 - 180
+        frame1.rotate_along(direction, rotation)
+        frame2.rotate_along(direction, rotation)
+        displacement = np.random.random(3) * 10 - 5
+        frame1.shift(displacement[0], displacement[1], displacement[2])
+        frame2.shift(displacement[0], displacement[1], displacement[2])
+        assert(frame1 ==  frame2)
+
+        frame1 = ReferenceFrame(xcoord=np.nan, ycoord=y, zcoord=z)
+        frame2 = ReferenceFrame(xcoord=x, ycoord=y, zcoord=z)
+        assert not(frame1 ==  frame2)
+
+        frame1 = ReferenceFrame(xcoord=x, ycoord=y, zcoord=z)
+        frame2 = ReferenceFrame(xcoord=np.nan, ycoord=y, zcoord=z)
+        assert not(frame1 ==  frame2)
+
+        frame1 = ReferenceFrame(xcoord=np.nan, ycoord=y, zcoord=z)
+        frame2 = ReferenceFrame(xcoord=np.nan, ycoord=y, zcoord=z)
+        assert not(frame1 ==  frame2)
+
+        frame1 = ReferenceFrame(xcoord=np.nan, ycoord=y, zcoord=z)
+        frame2 = ReferenceFrame(xcoord=np.nan, ycoord=np.nan, zcoord=z)
+        assert not(frame1 ==  frame2)
+
+        frame1 = ReferenceFrame(xcoord=np.nan, ycoord=np.nan, zcoord=np.nan)
+        frame2 = ReferenceFrame(xcoord=np.nan, ycoord=np.nan, zcoord=np.nan)
+        assert not(frame1 ==  frame2)
+
+
+    vals1 = [-123, 0, 0.5, 1, 101235]
+    vals2 = [-122, 0.3, 3.5, 4.6, 1235]
+    for x1, y1, z1 in itertools.product(vals1, vals1, vals1):
+        frame1 = ReferenceFrame(xcoord=x1, ycoord=y1, zcoord=z1)
+        for x2, y2, z2 in itertools.product(vals2, vals2, vals2):
+            frame2 = ReferenceFrame(xcoord=x2, ycoord=y2, zcoord=z2)
+            assert not(frame1 ==  frame2)
+
+
 def test_shift():
     '''Test shift method from ReferenceFrame class
     '''
@@ -1489,6 +1538,35 @@ def test_zrotate_ref():
             assert pytest.approx(frame.xversor, 0.00001) == xversor_rot
             assert pytest.approx(frame.yversor, 0.00001) == yversor_rot
             assert pytest.approx(frame.zversor, 0.00001) == zversor_rot
+
+
+def test_move_to_origin():
+
+    frame = ReferenceFrame()
+    frame.move_to_origin()
+    assert all(frame.origin == np.array([0, 0, 0]))
+    assert all(frame.xversor == np.array([1, 0, 0]))
+    assert all(frame.yversor == np.array([0, 1, 0]))
+    assert all(frame.zversor == np.array([0, 0, 1]))
+
+    vals = [-123, 0, 0.5, 1, 101235]
+    for xshift, yshift, zshift in itertools.product(vals, vals, vals):
+        frame = ReferenceFrame()
+        frame.shift(xshift, yshift, zshift)
+        frame.move_to_origin()
+        assert all(frame.origin == np.array([0, 0, 0]))
+        assert pytest.approx(frame.xversor, 0.000001) == np.array([1, 0, 0])
+        assert pytest.approx(frame.yversor, 0.000001) == np.array([0, 1, 0])
+        assert pytest.approx(frame.zversor, 0.000001) == np.array([0, 0, 1])
+
+        frame = ReferenceFrame()
+        frame.rotate_along(np.random.random(3), 360 * np.random.random() - 180)
+        frame.shift_ref(xshift, yshift, zshift)
+        frame.move_to_origin()
+        assert all(frame.origin == np.array([0, 0, 0]))
+        assert pytest.approx(frame.xversor, 0.000001) == np.array([1, 0, 0])
+        assert pytest.approx(frame.yversor, 0.000001) == np.array([0, 1, 0])
+        assert pytest.approx(frame.zversor, 0.000001) == np.array([0, 0, 1])
 
 
 def test_o2r():

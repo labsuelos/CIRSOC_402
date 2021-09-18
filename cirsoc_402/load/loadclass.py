@@ -8,7 +8,7 @@ from cirsoc_402.load.quaternion import Quaternion
 from cirsoc_402.load.referenceframe import ReferenceFrame
 from cirsoc_402.load.referenceframe import Arrow3D
 
-class _LoadBase:
+class GenericLoad:
     '''Class for the acting forces and moments in a load. The component
     of the force and moments are defined accoridng to the following
     convention. Arrows indicate positive directions. Right rule is used
@@ -35,12 +35,9 @@ class _LoadBase:
             components of the force in the reference frame
         moment : np.ndarray
             components of the moment in the reference frame
-        reference : Referece
+        reference : RefereceFrame
             reference frame in which the load and moment components are
             expressed
-    
-    Example 1
-    ---------
     '''
     
     def __init__(self, xforce=0.0, yforce=0.0, zforce=0.0,
@@ -60,8 +57,11 @@ class _LoadBase:
             
         self.force = np.array([xforce, yforce, zforce])
         self.moment = np.array([xmoment, ymoment, zmoment])
-        self.reference = reference
+        self.reference = copy.deepcopy(reference)
     
+    # makes sure that numpy methods don't override the class methods
+    __array_priority__ = 10000
+
     def __repr__(self):
         refframe = self.reference
         txt = "F = ({:.2f}, {:.2f}, {:.2f})\n".format(self.force[0], self.force[1], self.force[2])
@@ -72,8 +72,75 @@ class _LoadBase:
         txt += "ey = ({:.2f}, {:.2f}, {:.2f})\n".format(refframe.yversor[0], refframe.yversor[1], refframe.yversor[2])
         txt += "ez = ({:.2f}, {:.2f}, {:.2f})".format(refframe.zversor[0], refframe.zversor[1], refframe.zversor[2])
         return txt
+
+    def __eq__(self, other):
+        if  not isinstance(other, GenericLoad):
+            return False
+        if not all(self.force == other.force):
+            return False
+        if not all(self.moment == other.moment):
+            return False
+        if not self.reference == other.reference:
+            return False
+        return True
+
+    @classmethod
+    def fromarray(cls, force=[0,0,0], moment=[0,0,0], reference=ReferenceFrame()):
+        '''Instanciates a GenericLoad object from array-like inputs
+
+        Parameters
+        ----------
+        force : array-like, optional
+            array with the forces componets, by default [0,0,0]
+        moment : array-like, optional
+            array with the moment components, by default [0,0,0]
+        reference : RefereceFrame, optional
+            reference frame of the load, by default ReferenceFrame()
+
+        Returns
+        -------
+        GenericLoad
+            Generic load object
+
+        Raises
+        ------
+        TypeError
+            Force components weren't specified as an array-like
+        ValueError
+            Wrong number of components in force array
+        TypeError
+            Moment components weren't specified as an array-like
+        ValueError
+            Wrong number of components in moment array
+        '''
+        if not isinstance(force, (list, tuple, np.ndarray)):
+            raise TypeError('Force components must be specified by a 3-element array.')
+        if len(force)!=3:
+            raise ValueError('Force components must be specified by a 3-element array.')
         
+        if not isinstance(moment, (list, tuple, np.ndarray)):
+            raise TypeError('Moment components must be specified by a 3-element array.')
+        if len(moment)!=3:
+            raise ValueError('Moment components must be specified by a 3-element array.')
+
+        return cls(xforce=force[0], yforce=force[1], zforce=force[2],
+                   xmoment=moment[0], ymoment=moment[1], zmoment=moment[2],
+                   reference=reference)
+
     def shift(self, xshift, yshift, zshift):
+        '''Moves the load's reference frame with the movement specified in
+        the origin system coordinates updating the force and moment
+        components.
+
+        Parameters
+        ----------
+        xshift : float, int
+            displacement along the x-axis of the origin system
+        yshift : float, int
+            displacement along the y-axis of the origin system
+        zshift : float, int
+            displacement along the z-axis of the origin system
+        '''
         # displacement of the reference frame expressed in the origin coordinate system 
         refdisp = np.array([xshift, yshift, zshift])
         # displacement of the reference frame expressed in the reference coordinate system
@@ -81,31 +148,108 @@ class _LoadBase:
         # new moment due to displacement expressed in the reference coordinate system 
         momentadd = np.cross(-refdisp, self.force)
         self.moment = self.moment + momentadd
+        # update reference frame
+        self.reference.shift(xshift, yshift, zshift)
         
     def xshift(self, shift):
+        '''Moves the load's reference frame in the x direction of the
+        origin system updating the force and moment components.
+
+        Parameters
+        ----------
+        shift : float, int
+            displacement along the x-axis of the origin system
+        '''
         self.shift(shift, 0, 0)
         
     def yshift(self, shift):
+        '''Moves the load's reference frame in the y direction of the
+        origin system updating the force and moment components.
+
+        Parameters
+        ----------
+        shift : float, int
+            displacement along the y-axis of the origin system
+        '''
         self.shift(0, shift, 0)
     
     def zshift(self, shift):
+        '''Moves the load's reference frame in the z direction of the
+        origin system updating the force and moment components.
+
+        Parameters
+        ----------
+        shift : float, int
+            displacement along the z-axis of the origin system
+        '''
         self.shift(0, 0, shift)
         
     def shift_ref(self, xshift, yshift, zshift):
+        '''Moves the load's reference frame with the movement specified in
+        the reference frame coordinates updating the force and moment
+        components.
+
+        Parameters
+        ----------
+        xshift : float, int
+            displacement along the x-axis of the reference frame
+        yshift : float, int
+            displacement along the y-axis of the reference frame
+        zshift : float, int
+            displacement along the z-axis of the reference frame
+        '''
         # new moment due to displacement expressed in the reference coordinate system 
         momentadd = np.cross(-np.array([xshift, yshift, zshift]), self.force)
         self.moment = self.moment + momentadd
+        # update reference frame
+        self.reference.shift_ref(xshift, yshift, zshift)
     
     def xshift_ref(self, shift):
+        '''Moves the load's reference frame in the x direction of the
+        reference frame updating the force and moment components.
+
+        Parameters
+        ----------
+        shift : float, int
+            displacement along the x-axis of the reference frame
+        '''
         self.shift_ref(shift, 0, 0)
         
     def yshift_ref(self, shift):
+        '''Moves the load's reference frame in the y direction of the
+        reference frame updating the force and moment components.
+
+        Parameters
+        ----------
+        shift : float, int
+            displacement along the y-axis of the reference frame
+        '''
         self.shift_ref(0, shift, 0)
     
     def zshift_ref(self, shift):
+        '''Moves the load's reference frame in the z direction of the
+        reference frame updating the force and moment components.
+
+        Parameters
+        ----------
+        shift : float, int
+            displacement along the z-axis of the reference frame
+        '''
         self.shift_ref(0, 0, shift)
         
     def rotate_along(self, direction, theta):
+        '''Rotates the load's reference frame relative to its own origin
+        along a direction specified in the absolute origin system
+        updating the force and moment components.
+
+        Parameters
+        ----------
+        direction : array-like
+            direction vector relative to the origin system along which
+            the reference frame will be rotated.
+        theta : float, int
+            rotation [deg]
+        '''
         # components of the force and moment expressed in the origin coordinate system
         force_origin = self.reference.r2o(self.force)
         moment_origin = self.reference.r2o(self.moment)
@@ -118,34 +262,122 @@ class _LoadBase:
         self.moment = self.reference.o2r(moment_origin)
     
     def xrotate(self, theta):
+        '''Rotates the load's reference frame relative to its own origin
+        along the x-direction of the absolute origin system updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along([1, 0, 0], theta)
     
     def yrotate(self, theta):
+        '''Rotates the load's reference frame relative to its own origin
+        along the y-direction of the absolute origin system updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along([0, 1, 0], theta)
     
     def zrotate(self, theta):
+        '''Rotates the load's reference frame relative to its own origin
+        along the z-direction of the absolute origin system updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along([0, 0, 1], theta)
         
     def rotate_along_ref(self, direction, theta):
+        '''Rotates the load's reference frame relative to its own origin
+        along a direction specified in the reference frame updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        direction : array-like
+            direction vector expressed in the refrence frame along which
+            the reference frame will be rotated.
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along(self.reference.r2o(direction), theta)
     
     def xrotate_ref(self, theta):
+        '''Rotates the load's reference frame relative to its own origin
+        along the x-direction of the reference frame updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along_ref([1, 0, 0], theta)
     
     def yrotate_ref(self, theta):
+        '''Rotates the load's reference frame relative to its own origin
+        along the y-direction of the reference frame updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along_ref([0, 1, 0], theta)
     
     def zrotate_ref(self, theta):
+        '''Rotates the load's reference frame relative to its own origin
+        along the z-direction of the reference frame updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along_ref([0, 0, 1], theta)
     
     def to_reference(self, other_reference):
+        '''Moves and rotates the load's reference frame to match a
+        target reference frame updating the force and moment components.
+
+        Parameters
+        ----------
+        other_reference : ReferenceFrame
+            target frame of reference
+
+        Raises
+        ------
+        TypeError
+            The target frame of refernce wasn't specified with a
+            ReferenceFrame object
+        '''
         if not isinstance(other_reference, ReferenceFrame):
             raise TypeError('The frame of reference must be specified by a ReferenceFrame object.')
         
         # move to match position in space
-        disp = other_reference.origin - self.reference.origin
-        self.shift(disp[0], disp[1], disp[2])
         
+        disp = other_reference.origin - self.reference.origin
+        force_o = self.reference.r2o(self.force)
+        moment_o = self.reference.r2o(self.moment)
+
+        self.force = other_reference.o2r(force_o)
+        self.moment = other_reference.o2r(moment_o - np.cross(disp, force_o))
+        self.reference = copy.deepcopy(other_reference)
+        #self.shift(disp[0], disp[1], disp[2])
+        
+        '''
         # rotate to match orientation of xversors
         unitvec = self.reference.r2o([1, 0, 0])
         otherunitvec = other_reference.r2o([1, 0, 0])
@@ -184,8 +416,12 @@ class _LoadBase:
                              / np.dot(unitvec, unitvec)**(1/2) \
                              / np.dot(otherunitvec, otherunitvec)**(1/2))
             self.rotate_along(rotdir, -np.rad2deg(theta))
+        '''
         
     def to_origin(self):
+        '''Moves and rotates the load's reference frame to match the 
+        absolut origin updating the force and moment components.
+        '''
         self.to_reference(ReferenceFrame())
         
     def resetorigin(self):
@@ -208,13 +444,20 @@ class _LoadBase:
         TypeError
             Input is not a Load object.
         '''
-        if not isinstance(other, (Load, _LoadBase)):
+        if not isinstance(other, (Load, GenericLoad)):
             raise TypeError("The forces to add must be specified in a Load objcet.")
         
+        if any(np.isnan(self.force)) or any(np.isnan(self.moment)) or \
+           any(np.isnan(other.force)) or any(np.isnan(other.moment)):
+            selfcopy = copy.deepcopy(self)
+            selfcopy.force = np.array([np.nan, np.nan, np.nan])
+            selfcopy.moment = np.array([np.nan, np.nan, np.nan])
+            return selfcopy
         selfcopy = copy.deepcopy(self)
-        other.to_reference(self.reference)
-        selfcopy.force += other.force
-        selfcopy.moment += other.moment
+        othercopy = copy.deepcopy(other)
+        othercopy.to_reference(self.reference)
+        selfcopy.force = selfcopy.force +  othercopy.force
+        selfcopy.moment = selfcopy.moment + othercopy.moment
         return(selfcopy)
 
     def __sub__(self, other):
@@ -231,13 +474,20 @@ class _LoadBase:
         TypeError
             Input is not a Load object.
         '''
-        if not isinstance(other, (Load, _LoadBase)):
+        if not isinstance(other, (Load, GenericLoad)):
             raise TypeError("The forces to add must be specified in a Load objcet.")
         
+        if any(np.isnan(self.force)) or any(np.isnan(self.moment)) or \
+           any(np.isnan(other.force)) or any(np.isnan(other.moment)):
+            selfcopy = copy.deepcopy(self)
+            selfcopy.force = np.array([np.nan, np.nan, np.nan])
+            selfcopy.moment = np.array([np.nan, np.nan, np.nan])
+            return selfcopy
         selfcopy = copy.deepcopy(self)
-        other.to_reference(self.reference)
-        selfcopy.force -= other.force
-        selfcopy.moment -= other.moment
+        othercopy = copy.deepcopy(other)
+        othercopy.to_reference(self.reference)
+        selfcopy.force = selfcopy.force - othercopy.force
+        selfcopy.moment = selfcopy.moment - othercopy.moment
         return(selfcopy)
     
     def __mul__(self, mulby):
@@ -261,7 +511,7 @@ class _LoadBase:
             
         selfcopy = copy.deepcopy(self)
         selfcopy.force = mulby * selfcopy.force
-        selfcopy.moment = mulby * self.moment
+        selfcopy.moment = mulby * selfcopy.moment
         
         return(selfcopy)
     
@@ -324,12 +574,7 @@ class _LoadBase:
         TypeError
             Input is not a Load object.
         '''
-        if not isinstance(other, (Load, _LoadBase)):
-            raise TypeError("The forces to add must be specified in a Load objcet.")
-        
-        other.to_reference(self.reference)
-        self.force += other.force
-        self.moment += other.moment
+        return self + other
         
     def __isub__(self, other):
         '''Substracts two Load objects, preserving the reference point
@@ -345,12 +590,7 @@ class _LoadBase:
         TypeError
             Input is not a Load object.
         '''
-        if not isinstance(other, (Load, _LoadBase)):
-            raise TypeError("The forces to add must be specified in a Load objcet.")
-
-        other.to_reference(self.reference)
-        self.force -= other.force
-        self.moment -= other.moment
+        return self - other
     
     def __imul__(self, mulby):
         '''Multiplies the forces and moments by a float or integer
@@ -367,12 +607,7 @@ class _LoadBase:
             The value by which the forces are to be multiplied is not
             a float or int.
         '''
-
-        if not isinstance(mulby, numbers.Number):
-            raise TypeError('Forces can only be mumplitied by a number.')
-
-        self.force = mulby * self.force
-        self.moment = mulby * self.moment
+        return mulby * self
     
     def __irmul__(self, mulby):
         '''Right multiplies the forces and moments by a float or integer
@@ -389,7 +624,7 @@ class _LoadBase:
             The value by which the forces are to be multiplied is not
             a float or int.
         '''
-        self.__imul__(mulby)
+        return mulby * self
 
     def __itruediv__(self, divby):
         '''Dividez the forces and moments by a float or integer
@@ -408,14 +643,7 @@ class _LoadBase:
         ValueError
             Division by zero.
         '''
-        if not isinstance(divby, numbers.Number):
-            raise TypeError('Forces can only be divided by a number.')
-        
-        if divby == 0:
-            raise ValueError('Division by zero.')
-        
-        self.force = self.force / divby
-        self.moment = self.moment / divby
+        return self / divby
 
     def plot(self, scale=1, margin=0.2, figsize=(8,8), elev=30, azimut=45):
         fig = self.reference.plot(scale=scale, margin=margin, figsize=figsize,
@@ -463,7 +691,7 @@ class _LoadBase:
         return fig      
 
 
-class Load(_LoadBase):
+class Load(GenericLoad):
     '''Class for the acting forces and moments in a load. The component
     of the force and moments are defined accoridng to the following
     convention. Arrows indicate positive directions. Right rule is used
@@ -497,9 +725,6 @@ class Load(_LoadBase):
         reference : Referece
             reference frame in which the load and moment components are
             expressed
-    
-    Example 1
-    ---------
     '''
 
     def __init__(self, loadtype, name='', **kwargs):
@@ -531,3 +756,67 @@ class Load(_LoadBase):
         txt += "ey = ({:.2f}, {:.2f}, {:.2f})\n".format(refframe.yversor[0], refframe.yversor[1], refframe.yversor[2])
         txt += "ez = ({:.2f}, {:.2f}, {:.2f})".format(refframe.zversor[0], refframe.zversor[1], refframe.zversor[2])
         return txt
+    
+    def __eq__(self, other):
+        if  not isinstance(other, Load):
+            return False
+        if self.name != other.name:
+            return False
+        if self.loadtype != other.loadtype:
+            return False
+        if not all(self.force == other.force):
+            return False
+        if not all(self.moment == other.moment):
+            return False
+        if not self.reference == other.reference:
+            return False
+        return True
+    
+    @classmethod
+    def fromarray(cls, loadtype, name='', force=[0,0,0], moment=[0,0,0],
+                  reference=ReferenceFrame()):
+        '''Instanciates a Load object from array-like inputs
+
+        Parameters
+        ----------
+        loadtype : str
+            load type accoding to cirsoc_402.constants.LOAD
+        name : str
+            name of the load
+        force : array-like, optional
+            array with the forces componets, by default [0,0,0]
+        moment : array-like, optional
+            array with the moment components, by default [0,0,0]
+        reference : RefereceFrame, optional
+            reference frame of the load, by default ReferenceFrame()
+
+        Returns
+        -------
+        GenericLoad
+            Generic load object
+
+        Raises
+        ------
+        TypeError
+            Force components weren't specified as an array-like
+        ValueError
+            Wrong number of components in force array
+        TypeError
+            Moment components weren't specified as an array-like
+        ValueError
+            Wrong number of components in moment array
+        '''
+        if not isinstance(force, (list, tuple, np.ndarray)):
+            raise TypeError('Force components must be specified by a 3-element array.')
+        if len(force)!=3:
+            raise ValueError('Force components must be specified by a 3-element array.')
+        
+        if not isinstance(moment, (list, tuple, np.ndarray)):
+            raise TypeError('Moment components must be specified by a 3-element array.')
+        if len(moment)!=3:
+            raise ValueError('Moment components must be specified by a 3-element array.')
+
+        return cls(loadtype, name=name,
+                   xforce=force[0], yforce=force[1], zforce=force[2],
+                   xmoment=moment[0], ymoment=moment[1], zmoment=moment[2],
+                   reference=reference)

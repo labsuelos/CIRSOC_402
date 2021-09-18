@@ -73,6 +73,19 @@ class ReferenceFrame:
         txt += "ez = ({:.2f}, {:.2f}, {:.2f})".format(self.zversor[0], self.zversor[1], self.zversor[2])
         return txt
     
+    def __eq__(self, other):
+        if not isinstance(other, ReferenceFrame):
+            return False
+        if not all(self.origin == other.origin):
+            return False
+        if not all(self.xversor == other.xversor):
+            return False
+        if not all(self.yversor == other.yversor):
+            return False
+        if not all(self.zversor == other.zversor):
+            return False
+        return True
+
     def shift(self, xshift, yshift, zshift):
         '''Moves the reference frame with the movement specified in the
         origin system coordinates.
@@ -286,22 +299,25 @@ class ReferenceFrame:
         self.zshift(-self.origin[2])
 
         rotdir = np.cross([1, 0, 0], self.xversor)
-        rotdir = rotdir / np.dot(rotdir, rotdir)**(1/2)
-        if not all(np.round(rotdir, 6) == np.array([0, 0, 0])):
-            theta = np.arccos(np.dot([1, 0, 0], self.xversor))
-            self.rotate_along(rotdir, -np.rad2deg(theta))
+        if np.dot(rotdir, rotdir) > 0:
+            rotdir = rotdir / np.dot(rotdir, rotdir)**(1/2)
+            if not all(np.round(rotdir, 6) == np.array([0, 0, 0])):
+                theta = np.arccos(np.dot([1, 0, 0], self.xversor))
+                self.rotate_along(rotdir, -np.rad2deg(theta))
         
         rotdir = np.cross([0, 1, 0], self.yversor)
-        rotdir = rotdir / np.dot(rotdir, rotdir)**(1/2)
-        if not all(np.round(rotdir, 6) == np.array([0, 0, 0])):
-            theta = np.arccos(np.dot([0, 1, 0], self.yversor))
-            self.rotate_along(rotdir, -np.rad2deg(theta))
+        if np.dot(rotdir, rotdir) > 0:
+            rotdir = rotdir / np.dot(rotdir, rotdir)**(1/2)
+            if not all(np.round(rotdir, 6) == np.array([0, 0, 0])):
+                theta = np.arccos(np.dot([0, 1, 0], self.yversor))
+                self.rotate_along(rotdir, -np.rad2deg(theta))
             
         rotdir = np.cross([0, 0, 1], self.zversor)
-        rotdir = rotdir / np.dot(rotdir, rotdir)**(1/2)
-        if not all(np.round(rotdir, 6) == np.array([0, 0, 0])):
-            theta = np.arccos(np.dot([0, 0, 1], self.zversor))
-            self.rotate_along(rotdir, -np.rad2deg(theta))
+        if np.dot(rotdir, rotdir) > 0:
+            rotdir = rotdir / np.dot(rotdir, rotdir)**(1/2)
+            if not all(np.round(rotdir, 6) == np.array([0, 0, 0])):
+                theta = np.arccos(np.dot([0, 0, 1], self.zversor))
+                self.rotate_along(rotdir, -np.rad2deg(theta))
     
     def o2r(self, vector):
         '''Coordinate transformation from the origin to the reference

@@ -9,6 +9,7 @@ References
 
 from cirsoc_402.load.referenceframe import ReferenceFrame
 from cirsoc_402.load.loadclass import Load
+from cirsoc_402.load.loadclass import GenericLoad
 from cirsoc_402.load.loadgroup import LoadGroup
 from cirsoc_402.load.loadcombination import LoadCombination
 from cirsoc_402.load.loadfactor import LoadFactors
