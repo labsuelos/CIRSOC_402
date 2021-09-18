@@ -1,7 +1,7 @@
 '''Module for testing the ReferenceFrame class in
 cirsoc_402.loads.referenceframe
 '''
-
+import copy
 import numpy as np
 import pytest
 import itertools
@@ -1662,3 +1662,111 @@ def test_pos_r2o():
                 expected = frame.origin + pos_r[0] * frame.xversor \
                            + pos_r[1] * frame.yversor + pos_r[2] * frame.zversor
                 assert pytest.approx(pos_o, 0.00001) == expected
+
+
+def test_to_reference():
+    '''Test to_reference method from ReferenceFrame class
+    '''
+
+    ref1 = ReferenceFrame()
+    ref2 = copy.deepcopy(ref1)
+    ref2.rotate_along([1, 2, 3], 123)
+    ref3 = copy.deepcopy(ref1)
+    ref3.shift(3, 2, 1)
+    refs = [ref1, ref2, ref3]
+
+    theta = np.linspace(-180, 180, 18+1)
+    vals = [-123, 0, 3.5]
+    for ref in refs:
+        for x0, y0, z0 in itertools.product(vals, vals, vals):
+            for rot in theta:
+                frame_to = ReferenceFrame(xcoord=x0, ycoord=y0, zcoord=z0)        
+                frame_to.rotate_along(np.random.random(3), rot)
+
+                vector = np.random.random(3)
+
+                vector_o = ref.r2o(vector)
+                expected = frame_to.o2r(vector_o)
+
+                assert pytest.approx(expected, 0.0000001) == ref.to_reference(vector, frame_to)
+
+
+def test_from_reference():
+    '''Test pos_from_reference method from ReferenceFrame class
+    '''
+
+    ref1 = ReferenceFrame()
+    ref2 = copy.deepcopy(ref1)
+    ref2.rotate_along([1, 2, 3], 123)
+    ref3 = copy.deepcopy(ref1)
+    ref3.shift(3, 2, 1)
+    refs = [ref1, ref2, ref3]
+
+    theta = np.linspace(-180, 180, 18+1)
+    vals = [-123, 0, 3.5]
+    for ref in refs:
+        for x0, y0, z0 in itertools.product(vals, vals, vals):
+            for rot in theta:
+                frame_from = ReferenceFrame(xcoord=x0, ycoord=y0, zcoord=z0)        
+                frame_from.rotate_along(np.random.random(3), rot)
+
+                vector = np.random.random(3)
+
+                vector_o = frame_from.r2o(vector)
+                expected = ref.o2r(vector_o)
+
+                assert pytest.approx(expected, 0.0000001) == ref.from_reference(vector, frame_from)
+
+
+def test_pos_to_reference():
+    '''Test pos_to_reference method from ReferenceFrame class
+    '''
+
+    ref1 = ReferenceFrame()
+    ref2 = copy.deepcopy(ref1)
+    ref2.rotate_along([1, 2, 3], 123)
+    ref3 = copy.deepcopy(ref1)
+    ref3.shift(3, 2, 1)
+    refs = [ref1, ref2, ref3]
+
+    theta = np.linspace(-180, 180, 18+1)
+    vals = [-123, 0, 3.5]
+    for ref in refs:
+        for x0, y0, z0 in itertools.product(vals, vals, vals):
+            for rot in theta:
+                frame_to = ReferenceFrame(xcoord=x0, ycoord=y0, zcoord=z0)        
+                frame_to.rotate_along(np.random.random(3), rot)
+
+                vector = np.random.random(3)
+
+                vector_o = ref.pos_r2o(vector)
+                expected = frame_to.pos_o2r(vector_o)
+
+                assert pytest.approx(expected, 0.0000001) == ref.pos_to_reference(vector, frame_to)
+
+
+def test_pos_from_reference():
+    '''Test from_reference method from ReferenceFrame class
+    '''
+
+    ref1 = ReferenceFrame()
+    ref2 = copy.deepcopy(ref1)
+    ref2.rotate_along([1, 2, 3], 123)
+    ref3 = copy.deepcopy(ref1)
+    ref3.shift(3, 2, 1)
+    refs = [ref1, ref2, ref3]
+
+    theta = np.linspace(-180, 180, 18+1)
+    vals = [-123, 0, 3.5]
+    for ref in refs:
+        for x0, y0, z0 in itertools.product(vals, vals, vals):
+            for rot in theta:
+                frame_from = ReferenceFrame(xcoord=x0, ycoord=y0, zcoord=z0)        
+                frame_from.rotate_along(np.random.random(3), rot)
+
+                vector = np.random.random(3)
+
+                vector_o = frame_from.pos_r2o(vector)
+                expected = ref.pos_o2r(vector_o)
+
+                assert pytest.approx(expected, 0.0000001) == ref.pos_from_reference(vector, frame_from)

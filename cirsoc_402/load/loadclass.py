@@ -9,25 +9,10 @@ from cirsoc_402.load.referenceframe import ReferenceFrame
 from cirsoc_402.load.referenceframe import Arrow3D
 
 class GenericLoad:
-    '''Class for the acting forces and moments in a load. The component
-    of the force and moments are defined accoridng to the following
-    convention. Arrows indicate positive directions. Right rule is used
-    for computing moments. 
-
-
-     ▲ My                 ▲ Mz                  ▲ Mz
-     ▲ Qy                 ▲ Qz                  ▲ Qz                     
-     ▲ y                  ▲ z                   ▲ z
-     |                    |                     |
-     |                    | y                   |
-     o------► -► -►       o------► -► -►        o------► -► -►
-    z       x Qx Mx              x Qx Mx       x       y  Qy My
-    
-    The axial loads and moments are expressed relative to a reference
-    point of coordinates (xcoord, ycoord, zcoord) with the axis
-    rotated (xtheta, ytheta, ztheta). The reference coordinate system
-    can be moved and rotated by the user, updating the force and moment
-    values.
+    '''Class that contains the components of the force and moment
+    expressed in a given reference system, with the methods neccesary
+    to update the force and moment components under changes in the
+    reference frame.
 
     Attributes
     ----------
@@ -692,25 +677,11 @@ class GenericLoad:
 
 
 class Load(GenericLoad):
-    '''Class for the acting forces and moments in a load. The component
-    of the force and moments are defined accoridng to the following
-    convention. Arrows indicate positive directions. Right rule is used
-    for computing moments. 
-
-
-     ▲ My                 ▲ Mz                  ▲ Mz
-     ▲ Qy                 ▲ Qz                  ▲ Qz                     
-     ▲ y                  ▲ z                   ▲ z
-     |                    |                     |
-     |                    | y                   |
-     o------► -► -►       o------► -► -►        o------► -► -►
-    z       x Qx Mx              x Qx Mx       x       y  Qy My
-    
-    The axial loads and moments are expressed relative to a reference
-    point of coordinates (xcoord, ycoord, zcoord) with the axis
-    rotated (xtheta, ytheta, ztheta). The reference coordinate system
-    can be moved and rotated by the user, updating the force and moment
-    values.
+    '''Class that contains the components of the force and moment
+    expressed in a given reference system, with the methods neccesary
+    to update the force and moment components under changes in the
+    reference frame. The class requires the specification of the
+    load type.
 
     Attributes
     ----------

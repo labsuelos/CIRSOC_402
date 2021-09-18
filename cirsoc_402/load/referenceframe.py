@@ -1,11 +1,13 @@
 '''Module with the definition of the ReferenceFrame class.
 '''
 
+import copy
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 import numbers
 import numpy as np
+
 
 from cirsoc_402.load.quaternion import Quaternion
 
@@ -361,6 +363,66 @@ class ReferenceFrame:
         zcomp = np.dot(vector, [np.dot([0, 0, 1], self.xversor), np.dot([0, 0, 1], self.yversor), np.dot([0, 0, 1], self.zversor)])
         return np.array([xcomp, ycomp, zcomp])
 
+    def to_reference(self, vector, other_reference):
+        '''Transforms a vector from the current reference frame to
+        another reference frame
+
+        Parameters
+        ----------
+        vector : array-like
+            3-element array like with the vector coordinates in the
+            current reference system
+        other_reference : ReferenceFrame
+            target frame of reference
+
+        Returns
+        -------
+        np.ndarray
+            3-element array like with the vector coordinates in the
+            target reference frame
+
+        Raises
+        ------
+        TypeError
+            The target frame of refernce wasn't specified with a
+            ReferenceFrame object
+        '''
+    
+        if not isinstance(other_reference, ReferenceFrame):
+            raise TypeError('The frame of reference must be specified by a ReferenceFrame object.')
+
+        return other_reference.o2r(self.r2o(copy.deepcopy(vector)))
+
+    def from_reference(self, vector, other_reference):
+        '''Transforms a vector from the another reference frame to
+        the current reference frame
+
+        Parameters
+        ----------
+        vector : array-like
+            3-element array like with the vector coordinates in the
+            source reference system
+        other_reference : ReferenceFrame
+            source frame of reference
+
+        Returns
+        -------
+        np.ndarray
+            3-element array like with the vector coordinates in the
+            current reference frame
+
+        Raises
+        ------
+        TypeError
+            The source frame of refernce wasn't specified with a
+            ReferenceFrame object
+        '''
+    
+        if not isinstance(other_reference, ReferenceFrame):
+            raise TypeError('The frame of reference must be specified by a ReferenceFrame object.')
+
+        return self.o2r(other_reference.r2o(copy.deepcopy(vector)))
+
     def pos_o2r(self, vector):
         '''Finds the coordinates of a position vector in the reference
         system
@@ -405,6 +467,66 @@ class ReferenceFrame:
         # coordinates expressed in the reference system
         vector = vector - np.array(origin)
         return self.r2o(vector)
+
+    def pos_to_reference(self, vector, other_reference):
+        '''Transforms a position vector from the current reference frame
+        to another reference frame
+
+        Parameters
+        ----------
+        vector : array-like
+            3-element array like with the position coordinates in the
+            current reference system
+        other_reference : ReferenceFrame
+            target frame of reference
+
+        Returns
+        -------
+        np.ndarray
+            3-element array like with the position coordinates in the
+            target reference frame
+
+        Raises
+        ------
+        TypeError
+            The target frame of refernce wasn't specified with a
+            ReferenceFrame object
+        '''
+    
+        if not isinstance(other_reference, ReferenceFrame):
+            raise TypeError('The frame of reference must be specified by a ReferenceFrame object.')
+
+        return other_reference.pos_o2r(self.pos_r2o(copy.deepcopy(vector)))
+
+    def pos_from_reference(self, vector, other_reference):
+        '''Transforms a position vector from the another reference frame
+        to the current reference frame
+
+        Parameters
+        ----------
+        vector : array-like
+            3-element array like with the position coordinates in the
+            source reference system
+        other_reference : ReferenceFrame
+            source frame of reference
+
+        Returns
+        -------
+        np.ndarray
+            3-element array like with the position coordinates in the
+            current reference frame
+
+        Raises
+        ------
+        TypeError
+            The source frame of refernce wasn't specified with a
+            ReferenceFrame object
+        '''
+    
+        if not isinstance(other_reference, ReferenceFrame):
+            raise TypeError('The frame of reference must be specified by a ReferenceFrame object.')
+
+        return self.pos_o2r(other_reference.pos_r2o(copy.deepcopy(vector)))
 
     def _normalize_versors(self):
         '''Makes sure that the direction versors of the reference frame
