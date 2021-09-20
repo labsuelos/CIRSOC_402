@@ -518,7 +518,7 @@ class GenericLoad:
         return self.__mul__(mulby)
 
     def __truediv__(self, divby):
-        '''Dividez the forces and moments by a float or integer
+        '''Divide the forces and moments by a float or integer
 
         Parameters
         ----------

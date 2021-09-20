@@ -61,6 +61,9 @@ class LoadGroup():
         self.W = Load('W')
         self.Wi = Load('Wi')
     
+    # makes sure that numpy methods don't override the class methods
+    __array_priority__ = 10000
+
     def __repr__(self):
         row = "{}\t{:.2f}\t\t{:.2f}\t\t{:.2f}\t\t\t{:.2f}\t\t{:.2f}\t\t{:.2f}\n"
 
@@ -81,16 +84,18 @@ class LoadGroup():
         return txt
 
     def shift(self, xshift, yshift, zshift):
-        '''Updates moments of all loads for a movement of the reference
-        point in the x, y and z directions.
+        '''Moves the load group reference frame with the movement
+        specified in the origin system coordinates updating the force
+        and moment components.
 
         Parameters
         ----------
-        xshift : float
-            movement of the reference point in the x direction [m]
-        yshift : float
-            movement of the reference point in the y direction [m]
-        zshift : float
+        xshift : float, int
+            displacement along the x-axis of the origin system
+        yshift : float, int
+            displacement along the y-axis of the origin system
+        zshift : float, int
+            displacement along the z-axis of the origin system
         '''
         for loadid in LOAD:
             load = getattr(self, loadid)
@@ -98,49 +103,51 @@ class LoadGroup():
             setattr(self, loadid, load)
         
     def xshift(self, shift):
-        '''Updates moments of all loads for a movement of the reference
-        point in the x direction.
+        '''Moves the load group reference frame in the x direction of
+        the origin system updating the force and moment components.
 
         Parameters
         ----------
-        shift : float
-            movement of the reference point in the x direction [m]
+        shift : float, int
+            displacement along the x-axis of the origin system
         '''
         self.shift(shift, 0, 0)
     
     def yshift(self, shift):
-        '''Updates moments of all loads for a movement of the reference
-        point in the y direction.
+        '''Moves the load group reference frame in the y direction of
+        the origin system updating the force and moment components.
 
         Parameters
         ----------
-        shift : float
-            movement of the reference point in the y direction [m]
+        shift : float, int
+            displacement along the y-axis of the origin system
         '''
         self.shift(0, shift, 0)
     
     def zshift(self, shift):
-        '''Updates moments of all loads for a movement of the reference
-        point in the z direction.
+        '''Moves the load group reference frame in the z direction of
+        the origin system updating the force and moment components.
 
         Parameters
         ----------
-        shift : float
-            movement of the reference point in the z direction [m]
+        shift : float, int
+            displacement along the z-axis of the origin system
         '''
         self.shift(0, 0, shift)
     
     def shift_ref(self, xshift, yshift, zshift):
-        '''Updates moments of all loads for a movement of the reference
-        point in the x, y and z directions.
+        '''Moves the load group reference frame with the movement
+        specified in the reference frame coordinates updating the force
+        and moment components.
 
         Parameters
         ----------
-        xshift : float
-            movement of the reference point in the x direction [m]
-        yshift : float
-            movement of the reference point in the y direction [m]
-        zshift : float
+        xshift : float, int
+            displacement along the x-axis of the reference frame
+        yshift : float, int
+            displacement along the y-axis of the reference frame
+        zshift : float, int
+            displacement along the z-axis of the reference frame
         '''
         for loadid in LOAD:
             load = getattr(self, loadid)
@@ -148,99 +155,176 @@ class LoadGroup():
             setattr(self, loadid, load)
         
     def xshift_ref(self, shift):
-        '''Updates moments of all loads for a movement of the reference
-        point in the x direction.
+        '''Moves the load group reference frame in the x direction to
+        the reference frame updating the force and moment components.
 
         Parameters
         ----------
-        shift : float
-            movement of the reference point in the x direction [m]
+        shift : float, int
+            displacement along the x-axis of the reference frame
         '''
         self.shift_ref(shift, 0, 0)
     
     def yshift_ref(self, shift):
-        '''Updates moments of all loads for a movement of the reference
-        point in the y direction.
+        '''Moves the load group reference frame in the y direction to
+        the reference frame updating the force and moment components.
 
         Parameters
         ----------
-        shift : float
-            movement of the reference point in the y direction [m]
+        shift : float, int
+            displacement along the y-axis of the reference frame
         '''
         self.shift_ref(0, shift, 0)
     
     def zshift_ref(self, shift):
-        '''Updates moments of all loads for a movement of the reference
-        point in the z direction.
+        '''Moves the load group reference frame in the z direction to
+        the reference frame updating the force and moment components.
 
         Parameters
         ----------
-        shift : float
-            movement of the reference point in the z direction [m]
+        shift : float, int
+            displacement along the z-axis of the reference frame
         '''
         self.shift_ref(0, 0, shift)
     
     def rotate_along(self, direction, theta):
+        '''Rotates the load group reference frame relative to its own
+        origin along a direction specified in the absolute origin system
+        updating the force and moment components.
+
+        Parameters
+        ----------
+        direction : array-like
+            direction vector relative to the origin system along which
+            the reference frame will be rotated.
+        theta : float, int
+            rotation [deg]
+        '''
         for loadid in LOAD:
             load = getattr(self, loadid)
             load.rotate_along(direction, theta)
             setattr(self, loadid, load)
 
     def xrotate(self, theta):
-        '''Updates forces and movements of all loads for a rotation of
-        the reference axis arrond the x axis.
+        '''Rotates the load group reference frame relative to its own
+        origin along the x-direction of the absolute origin system
+        updating the force and moment components.
 
         Parameters
         ----------
         theta : float, int
-            rotation arround the x axis [deg]
+            rotation [deg]
         '''
         self.rotate_along([1, 0, 0], theta)
     
     def yrotate(self, theta):
-        '''Updates forces and movements of all loads for a rotation of
-        the reference axis arrond the y axis.
+        '''Rotates the load group reference frame relative to its own
+        origin along the y-direction of the absolute origin system
+        updating the force and moment components.
 
         Parameters
         ----------
         theta : float, int
-            rotation arround the y axis [deg]
+            rotation [deg]
         '''
         self.rotate_along([0, 1, 0], theta)
     
     def zrotate(self, theta):
-        '''Updates forces and movements of all loads for a rotation of
-        the reference axis arrond the z axis.
+        '''Rotates the load group reference frame relative to its own
+        origin along the z-direction of the absolute origin system
+        updating the force and moment components.
 
         Parameters
         ----------
         theta : float, int
-            rotation arround the z axis [deg]
+            rotation [deg]
         '''
         self.rotate_along([0, 0, 1], theta)
 
     def rotate_along_ref(self, direction, theta):
+        '''Rotates the load group reference frame relative to its own
+        origin along a direction specified in the reference frame
+        updating the force and moment components.
+
+        Parameters
+        ----------
+        direction : array-like
+            direction vector expressed in the refrence frame along which
+            the reference frame will be rotated.
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along(self.D.reference.r2o(direction), theta)
 
     def xrotate_ref(self, theta):
+        '''Rotates the load group reference frame relative to its own
+        origin along the x-direction of the reference frame updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along_ref([1, 0, 0], theta)
     
     def yrotate_ref(self, theta):
+        '''Rotates the load group reference frame relative to its own
+        origin along the y-direction of the reference frame updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along_ref([0, 1, 0], theta)
     
     def zrotate_ref(self, theta):
+        '''Rotates the load group reference frame relative to its own
+        origin along the z-direction of the reference frame updating the
+        force and moment components.
+
+        Parameters
+        ----------
+        theta : float, int
+            rotation [deg]
+        '''
         self.rotate_along_ref([0, 0, 1], theta)
     
     def to_reference(self, other_reference):
+        '''Moves and rotates the load group reference frame to match a
+        target reference frame updating the force and moment components.
+
+        Parameters
+        ----------
+        other_reference : ReferenceFrame
+            target frame of reference
+
+        Raises
+        ------
+        TypeError
+            The target frame of refernce wasn't specified with a
+            ReferenceFrame object
+        '''
+        if not isinstance(other_reference, ReferenceFrame):
+            raise TypeError('The frame of reference must be specified by a ReferenceFrame object.')
+
         for loadid in LOAD:
             load = getattr(self, loadid)
             load.to_reference(other_reference)
             setattr(self, loadid, load)
 
     def to_origin(self):
+        '''Moves and rotates the load group reference frame to match the 
+        absolut origin updating the force and moment components.
+        '''
         self.to_reference(ReferenceFrame())
 
     def resetorigin(self):
+        '''Sets the current reference frame as te origin, keeping the
+        current values of the force and moment components.
+        '''
         for loadid in LOAD:
             load = getattr(self, loadid)
             load.reference = ReferenceFrame()
@@ -251,8 +335,7 @@ class LoadGroup():
             return self.__add_load__(other)
         elif isinstance(other, LoadGroup):
             return self.__add_loadgroup__(other)
-        else:
-            raise TypeError('Only loads or loadgroups can be added to a loadgroup.')
+        raise TypeError('Only loads or loadgroups can be added to a loadgroup.')
     
     def __add_load__(self, other):
         selfcopy = copy.deepcopy(self)
@@ -267,6 +350,26 @@ class LoadGroup():
             setattr(selfcopy, loadid, load + otherload)
         return selfcopy
     
+    def __sub__(self, other):
+        if isinstance(other, Load):
+            return self.__sub_load__(other)
+        elif isinstance(other, LoadGroup):
+            return self.__sub_loadgroup__(other)
+        raise TypeError('Only loads or loadgroups can be added to a loadgroup.')
+    
+    def __sub_load__(self, other):
+        selfcopy = copy.deepcopy(self)
+        setattr(selfcopy, other.loadtype, getattr(selfcopy, other.loadtype) - other)
+        return selfcopy
+    
+    def __sub_loadgroup__(self, other):
+        selfcopy = copy.deepcopy(self)
+        for loadid in LOAD:
+            load = getattr(selfcopy, loadid)
+            otherload = getattr(other, loadid) 
+            setattr(selfcopy, loadid, load - otherload)
+        return selfcopy
+
     def __mul__(self, mulby):
         if not isinstance(mulby, numbers.Number):
             raise TypeError('Forces can only be mumplitied by a number.')
@@ -289,27 +392,21 @@ class LoadGroup():
         return selfcopy
 
     def __iadd__(self, other):
-        if isinstance(other, Load):
-            self.__iadd_load__(other)
-        elif isinstance(other, LoadGroup):
-            self.__iadd_loadgroup__(other)
-        else:
-            raise TypeError('Only loads or loadgroups can be added to a loadgroup.')
-    
-    def __iadd_load__(self, other):
-        setattr(self, other.loadtype, getattr(self, other.loadtype) + other)
-  
-    def __iadd_loadgroup__(self, other):
-        for loadid in LOAD:
-            load = getattr(self, loadid)
-            otherload = getattr(other, loadid) 
-            setattr(self, loadid, load + otherload)
-    
+        if isinstance(other, Load) or isinstance(other, LoadGroup):
+            return self + other
+        raise TypeError('Only loads or loadgroups can be added to a loadgroup.')
+
+    def __isub__(self, other):
+        if isinstance(other, Load) or isinstance(other, LoadGroup):
+            return self - other
+        raise TypeError('Only loads or loadgroups can be added to a loadgroup.')
+
     def __imul__(self, mulby):
         if not isinstance(mulby, numbers.Number):
             raise TypeError('Forces can only be mumplitied by a number.')
         for loadid in LOAD:
             setattr(self, loadid, getattr(self, loadid) * mulby)
+        return self
 
     def __irmul__(self, mulby):
         self.__imul__(mulby)
@@ -321,3 +418,4 @@ class LoadGroup():
             raise ValueError('Division by zero.')
         for loadid in LOAD:
             setattr(self, loadid, getattr(self, loadid) / divby)
+        return self
